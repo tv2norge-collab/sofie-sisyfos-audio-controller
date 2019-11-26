@@ -7,18 +7,21 @@ export const SSLSystemT: IMixerProtocol = {
                     //client (use feedback from mixers fader level)
     leadingZeros: false,
     pingCommand: [emptyMixerMessage()],
-    pingTime: 0,
-    initializeCommands: [{ mixerMessage: "f1 04 00 80 00 00 {channel}", value: 0, type: '', min: 0, max: 1, zero: 0.75}],
+    pingResponseCommand: [emptyMixerMessage()],
+    pingTime: 5000,
+    initializeCommands: [{ mixerMessage: "f1 04 00 00 00 {channel}", value: 0, type: '', min: 0, max: 1, zero: 0.75}],
     channelTypes: [{
         channelTypeName: 'CH',
         channelTypeColor: '#2f2f2f',
         fromMixer: {
-            CHANNEL_FADER_LEVEL: [emptyMixerMessage()],        //PgmChange 0 - ignores this command
-            CHANNEL_OUT_GAIN: [{ mixerMessage: 'f1 06 ff 80 00 00 {channel} {level}', value: 0, type: '', min: 0, max: 1, zero: 0.75}],            //PgmChange 0 - ignores this command
-            CHANNEL_VU: [{ mixerMessage: "0", value: 0, type: 'f', min: 0, max: 1, zero: 0.75}],                   //PgmChange 0 - ignores this command
+            CHANNEL_FADER_LEVEL: [emptyMixerMessage()], // Handled by SSLMixerconnection
+            CHANNEL_OUT_GAIN: [emptyMixerMessage()],    // Handled by SSLMixerconnection
+            CHANNEL_VU: [emptyMixerMessage()],          // Not implemented in SSL Automation protocol yet
             CHANNEL_NAME: [emptyMixerMessage()],
             PFL: [emptyMixerMessage()],
             AUX_SEND: [emptyMixerMessage()],
+            CHANNEL_MUTE_ON: [{ mixerMessage: "f1 04 00 01 00 {channel}", value: 0, type: '', min: 0, max: 1, zero: 0.75}],
+            CHANNEL_MUTE_OFF: [emptyMixerMessage()]
         },
         toMixer: {
             CHANNEL_FADER_LEVEL: [emptyMixerMessage()],
@@ -27,6 +30,8 @@ export const SSLSystemT: IMixerProtocol = {
             PFL_ON: [{ mixerMessage: "f1 05 00 80 05 {channel} 01", value: 0, type: '', min: 0, max: 1, zero: 0.75}],
             PFL_OFF: [{ mixerMessage: "f1 05 00 80 05 {channel} 00", value: 0, type: '', min: 0, max: 1, zero: 0.75}],
             AUX_SEND: [{ mixerMessage: "f1 06 00 80 00 {channel} {level}", value: 0, type: '', min: 0, max: 1, zero: 0.75}],
+            CHANNEL_MUTE_ON: [{ mixerMessage: "f1 05 00 80 01 {channel} 00", value: 0, type: '', min: 0, max: 1, zero: 0.75}],
+            CHANNEL_MUTE_OFF: [{ mixerMessage: "f1 05 00 80 01 {channel} 01", value: 0, type: '', min: 0, max: 1, zero: 0.75}]
         },
     }],
     fader: {

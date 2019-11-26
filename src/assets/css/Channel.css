@@ -2,15 +2,15 @@
     color: white;
     background: linear-gradient(#2f2f2f 0px,#2f2f2f 730px, rgb(0, 0, 0) 1px, #2f2f2f 740px, #2f2f2f 100%);
     margin: 4px;
-    border-radius: 10px;
+    border-radius: 7px;
     max-width: 100px;
     position: relative;
 }
 
-.channel-name {
-    margin-top: 10px;
-    text-align: center;
-}
+.channel-body.mute-on {
+    background: linear-gradient(#202020 0px,#202020 730px, rgb(0, 0, 0) 1px, #2f2f2f 740px, #2f2f2f 100%);
+}  
+
 .channel-gain-label {
     color: #777777;
     font-size: 0.8em;
@@ -23,7 +23,7 @@
     -moz-outline : none;
     margin-left: 3px;
     margin-right: 3px;
-    margin-top: 40px;
+    margin-top: 25px;
     color: white;
     height: 90px;
     width: 80px;
@@ -33,9 +33,13 @@
     border-color: rgb(99, 99, 99);
 }
 
-
 .channel-pgm-button.on {
     background-color: red;
+}
+
+.channel-pgm-button.mute {
+    opacity: 0.3;
+    color: rgb(117, 117, 117);
 }
 
 
@@ -59,12 +63,17 @@
     background-color: rgb(207, 135, 1);
 }
 
+.channel-vo-button.mute {
+    opacity: 0.3;
+    color: rgb(117, 117, 117);
+}
+
 .channel-pst-button {
     outline : none;
     -moz-outline : none;
     margin-left: 3px;
     margin-right: 3px;
-    margin-top: 30px;
+    margin-top: 22px;
     color: white;
     height: 90px;
     width: 80px;
@@ -102,6 +111,27 @@
     animation: 2s pfl-active-flash;
     animation-direction: normal;
     animation-iteration-count: infinite;
+}
+
+.channel-mute-button {
+    outline : none;
+    -moz-outline : none;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 5px;
+    color: rgb(109, 108, 108);
+    height: 50px;
+    width: 80px;
+    font-size: 90%;
+    background-color: rgb(44, 44, 44);
+    border-radius: 7px;
+    border-color: rgb(109, 108, 108);
+}
+
+
+.channel-mute-button.on {
+    background-color: rgb(168, 168, 168);
+    color: rgb(48, 48, 48);
 }
 
 .channel-body.with-snaps .channel-pgm-button, .channel-body.with-snaps .channel-pst-button, .channel-body.with-snaps .channel-pfl-button {
@@ -166,9 +196,7 @@
 }
 
 .channel-settings {
-    position: absolute;
-    top: 5px;
-    left: 9px;
+    left: -3px;
     background: none;
     border: none;
     outline: none;
@@ -185,7 +213,22 @@
 .channel-settings > svg {
     width: 25px;
     height: 25px;
-    fill: rgba(255, 255, 255, 0.3);
+    fill: rgb(99, 99, 99);
+}
+
+.channel-strip-button {
+    outline : none;
+    -moz-outline : none;
+    margin-left: 3px;
+    margin-top: 5px;
+    margin-right: 3px;
+    color: white;
+    height: 50px;
+    width: 80px;
+    font-size: 105%;
+    background-color: rgba(39, 39, 39, 0.308);
+    border-radius: 7px;
+    border-color: rgba(99, 99, 99, 0.301);
 }
 
 .channel-body.with-snaps .vumeter-body {
@@ -196,7 +239,7 @@
     width: 10px;
     height: 420px;
     margin-left: 55px;
-    margin-top: 60px;
+    margin-top: 20px;
     border-width: 0px;
     border-style: solid;
     border-radius: 8px;
@@ -204,17 +247,48 @@
 }
 
 .channel-volume-thumb {
-    margin-left: -19px;
-    width: 45px;
-    height: 70px;
-    background-color: red;
-    border-color: #c5c2c2;
-    border-width: 1px;
-    border-style: solid;
+    margin-left: -21px;
+    width: 49px;
+    height: 75px;
+    border: 1px solid #c5c2c2;
     border-radius: 8px;
-    background: linear-gradient(to top, #3a3a3a 0%, #c2c2c2 20%, #919191 50%, #00a 1px, #919191 52%, #c2c2c2 80%, #3a3a3a 100%);
+    background: linear-gradient(to top, #3a3a3a 0%, #c2c2c2 20%, hsl(0, 0%, 57%) 50%, #00a 1px, #919191 52%, #c2c2c2 80%, #3a3a3a 100%);
+}
+
+.channel-volume-thumb-color-pgm {
+    margin-left: -21px;
+    width: 49px;
+    height: 75px;
+    border: 1px solid rgb(253, 60, 60);
+    border-radius: 8px;
+    background: linear-gradient(to top, #3a1d1d 0%, #c04d4d 20%, #811919 50%, #00a 1px, #8a2626 52%, #bd5151 80%, #411f1f 100%);
+}
+
+.channel-volume-thumb-color-vo {
+    margin-left: -21px;
+    width: 49px;
+    height: 75px;
+    border: 1px solid rgb(252, 255, 86);
+    border-radius: 8px;
+    background: linear-gradient(to top, #353006 0%, #c59327 20%, #856b14 50%, #00a 1px, #866724 52%, #cca22d 80%, #463b0a 100%);
+}
+
+.channel-volume-thumb-color-mute {
+    margin-left: -21px;
+    width: 49px;
+    height: 75px;
+    border: 1px solid rgb(58, 58, 58);
+    border-radius: 8px;
+    background: linear-gradient(to top, #111111 0%, #252525 20%, #2b2b2b 50%, rgb(56, 56, 56) 1px, #292929 52%, #222222 80%, #222222 100%);
 }
 
 :focus {
     outline: 0;
     }
+
+.channel-zero-indicator {
+    color: rgb(119, 119, 119);
+    position: absolute;
+   top: 153px;
+   left: 37px; 
+}

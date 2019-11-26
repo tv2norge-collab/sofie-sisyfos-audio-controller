@@ -7,18 +7,21 @@ export const ReaperMaster: IMixerProtocol = {
                     //client (use feedback from mixers fader level)
     leadingZeros: false,  //some OSC protocols needs channels to be 01, 02 etc.
     pingCommand: [emptyMixerMessage()],
-    pingTime: 0,  //Bypass ping when pingTime is zero
+    pingResponseCommand: [emptyMixerMessage()],
+    pingTime: 0,  //Set to value to get MixerOnline status 
     initializeCommands: [emptyMixerMessage()],
     channelTypes: [{
         channelTypeName: 'CH',
         channelTypeColor: '#2f2f2f',
         fromMixer: {
-            CHANNEL_FADER_LEVEL: [{ mixerMessage: '/track/{channel}/volume', value: 0, type: 'f', min: 0, max: 1, zero: 0.75 }],
+            CHANNEL_FADER_LEVEL: [emptyMixerMessage()],
             CHANNEL_OUT_GAIN: [{ mixerMessage: '/track/{channel}/volume', value: 0, type: 'f', min: 0, max: 1, zero: 0.75 }],
             CHANNEL_VU: [{ mixerMessage: '/track/{channel}/vu', value: 0, type: 'f', min: 0, max: 1, zero: 0.75 }],
             CHANNEL_NAME: [{ mixerMessage: '/track/{channel}/name', value: 0, type: 'f', min: 0, max: 1, zero: 0.75}],
             PFL: [emptyMixerMessage()],
             AUX_SEND: [emptyMixerMessage()],
+            CHANNEL_MUTE_ON: [emptyMixerMessage()],
+            CHANNEL_MUTE_OFF: [emptyMixerMessage()]
         },
         toMixer: {
             CHANNEL_FADER_LEVEL: [emptyMixerMessage()],
@@ -41,6 +44,8 @@ export const ReaperMaster: IMixerProtocol = {
                 zero: 0.75
             }],
             AUX_SEND: [emptyMixerMessage()],
+            CHANNEL_MUTE_ON: [emptyMixerMessage()],
+            CHANNEL_MUTE_OFF: [emptyMixerMessage()]
         },
     },
     {
@@ -56,6 +61,8 @@ export const ReaperMaster: IMixerProtocol = {
             CHANNEL_NAME: [emptyMixerMessage()],
             PFL: [emptyMixerMessage()],
             AUX_SEND: [emptyMixerMessage()],
+            CHANNEL_MUTE_ON: [emptyMixerMessage()],
+            CHANNEL_MUTE_OFF: [emptyMixerMessage()]
         },
         toMixer: {
             CHANNEL_FADER_LEVEL: [emptyMixerMessage()],
@@ -64,6 +71,8 @@ export const ReaperMaster: IMixerProtocol = {
             PFL_ON: [emptyMixerMessage()],
             PFL_OFF: [emptyMixerMessage()],
             AUX_SEND: [emptyMixerMessage()],
+            CHANNEL_MUTE_ON: [emptyMixerMessage()],
+            CHANNEL_MUTE_OFF: [emptyMixerMessage()]
         },
     }],
     fader: {

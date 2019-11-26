@@ -7,12 +7,21 @@ import { IMixerProtocol } from '../constants/MixerProtocolInterface';
 import { behringerMeter } from './productSpecific/behringer';
 import { midasMeter } from './productSpecific/midas';
 import { IStore } from '../reducers/indexReducer';
+import { SET_OUTPUT_LEVEL } from '../reducers/channelActions'
+import { 
+    SET_VU_LEVEL, 
+    SET_FADER_LEVEL,
+    SET_CHANNEL_LABEL,
+    TOGGLE_PGM
+} from '../reducers/faderActions'
+import { SET_MIXER_ONLINE } from '../reducers/settingsActions';
 
 export class OscMixerConnection {
     store: IStore;
     mixerProtocol: IMixerProtocol;
     cmdChannelIndex: number;
     oscConnection: any;
+    mixerOnlineTimer: any;
 
     constructor(mixerProtocol: IMixerProtocol) {
         this.sendOutMessage = this.sendOutMessage.bind(this);
@@ -21,6 +30,12 @@ export class OscMixerConnection {
         this.store = window.storeRedux.getState();
         const unsubscribe = window.storeRedux.subscribe(() => {
             this.store = window.storeRedux.getState();
+        });
+
+
+        window.storeRedux.dispatch({
+            type: SET_MIXER_ONLINE,
+            mixerOnline: false
         });
 
         this.mixerProtocol = mixerProtocol;
@@ -40,6 +55,11 @@ export class OscMixerConnection {
         this.oscConnection
         .on("ready", () => {
             console.log("Receiving state of desk");
+            window.storeRedux.dispatch({
+                type: SET_MIXER_ONLINE,
+                mixerOnline: true
+            });
+            
             this.mixerProtocol.initializeCommands.map((item) => {
                 if (item.mixerMessage.includes("{channel}")) {
                     this.store.channels[0].channel.map((channel: any, index: any) => {
@@ -51,6 +71,11 @@ export class OscMixerConnection {
             });
         })
         .on('message', (message: any) => {
+            clearTimeout(this.mixerOnlineTimer)
+            window.storeRedux.dispatch({
+                type: SET_MIXER_ONLINE,
+                mixerOnline: true
+            });
             if (this.checkOscCommand(message.address, this.mixerProtocol.channelTypes[0].fromMixer
                 .CHANNEL_VU[0].mixerMessage)){
                 if (this.store.settings[0].mixerProtocol.includes('behringer')) {
@@ -60,7 +85,7 @@ export class OscMixerConnection {
                 } else {
                     let ch = message.address.split("/")[this.cmdChannelIndex];
                     window.storeRedux.dispatch({
-                        type:'SET_VU_LEVEL',
+                        type:SET_VU_LEVEL,
                         channel: this.store.channels[0].channel[ch - 1].assignedFader,
                         level: message.args[0]
                     });
@@ -71,7 +96,7 @@ export class OscMixerConnection {
                 let assignedFader = 1 + this.store.channels[0].channel[ch - 1].assignedFader
 
                 window.storeRedux.dispatch({
-                    type:'SET_FADER_LEVEL',
+                    type: SET_FADER_LEVEL,
                     channel: assignedFader - 1,
                     level: message.args[0]
                 });
@@ -82,7 +107,7 @@ export class OscMixerConnection {
                     this.store.channels[0].channel.map((channel: any, index: number) => {
                         if (channel.assignedFader === assignedFader - 1) {
                             window.storeRedux.dispatch({
-                                type:'SET_OUTPUT_LEVEL',
+                                type:SET_OUTPUT_LEVEL,
                                 channel: index,
                                 level: message.args[0]
                             });
@@ -93,7 +118,7 @@ export class OscMixerConnection {
 
                 if (!this.store.faders[0].fader[assignedFader - 1].pgmOn) {
                     window.storeRedux.dispatch({
-                        type:'TOGGLE_PGM',
+                        type: TOGGLE_PGM,
                         channel: assignedFader - 1
                     });
                 }
@@ -104,33 +129,62 @@ export class OscMixerConnection {
             } else if ( this.checkOscCommand(message.address, this.mixerProtocol.channelTypes[0].fromMixer
                 .CHANNEL_OUT_GAIN[0].mixerMessage)){
                 let ch = message.address.split("/")[this.cmdChannelIndex];
-                let assignedFader = 1 + this.store.channels[0].channel[ch - 1].assignedFader
+                let assignedFaderIndex = this.store.channels[0].channel[ch - 1].assignedFader
+
+
                 if (this.mixerProtocol.mode === 'master'
-                    && !this.store.channels[0].channel[ch - 1].fadeActive
-                    &&  message.args[0] > this.mixerProtocol.fader.min)
-                {
-                    window.storeRedux.dispatch({
-                        type:'SET_FADER_LEVEL',
-                        channel: assignedFader - 1,
-                        level: message.args[0]
-                    });
-                    if (!this.store.faders[0].fader[assignedFader - 1].pgmOn) {
+                    && !this.store.channels[0].channel[ch - 1].fadeActive)
+                    {                    
+                    if  (message.args[0] > this.mixerProtocol.fader.min + (this.mixerProtocol.fader.max * this.store.settings[0].autoResetLevel / 100)) {
                         window.storeRedux.dispatch({
-                            type:'TOGGLE_PGM',
-                            channel: assignedFader -1
+                            type: SET_FADER_LEVEL,
+                            channel: assignedFaderIndex,
+                            level: message.args[0]
                         });
+                        this.store.channels[0].channel.forEach((item, index) => {
+                            if (item.assignedFader === assignedFaderIndex) {
+                                window.storeRedux.dispatch({
+                                    type: SET_OUTPUT_LEVEL,
+                                    channel: index,
+                                    level: message.args[0]
+                                });
+                            }
+                        })
+                        if (!this.store.faders[0].fader[assignedFaderIndex].pgmOn) {
+                            if (message.args[0] > this.mixerProtocol.fader.min) {
+                                window.storeRedux.dispatch({
+                                    type: TOGGLE_PGM,
+                                    channel: assignedFaderIndex
+                                });
+                            }
+                        }
+                    } else if (this.store.faders[0].fader[assignedFaderIndex].pgmOn 
+                            || this.store.faders[0].fader[assignedFaderIndex].voOn)
+                        {
+                        window.storeRedux.dispatch({
+                            type: SET_FADER_LEVEL,
+                            channel: assignedFaderIndex,
+                            level: message.args[0]
+                        });
+                        this.store.channels[0].channel.forEach((item, index) => {
+                            if (item.assignedFader === assignedFaderIndex) {
+                                window.storeRedux.dispatch({
+                                    type: SET_OUTPUT_LEVEL,
+                                    channel: index,
+                                    level: message.args[0]
+                                });
+                            }
+                        })
                     }
-
                     if (window.huiRemoteConnection) {
-                        window.huiRemoteConnection.updateRemoteFaderState(assignedFader - 1, message.args[0]);
+                        window.huiRemoteConnection.updateRemoteFaderState(assignedFaderIndex, message.args[0]);
                     }
-
-                }
+                } 
             } else if (this.checkOscCommand(message.address, this.mixerProtocol.channelTypes[0].fromMixer
                 .CHANNEL_NAME[0].mixerMessage)) {
                                     let ch = message.address.split("/")[this.cmdChannelIndex];
                     window.storeRedux.dispatch({
-                        type:'SET_CHANNEL_LABEL',
+                        type: SET_CHANNEL_LABEL,
                         channel: this.store.channels[0].channel[ch - 1].assignedFader,
                         label: message.args[0]
                     });
@@ -138,6 +192,10 @@ export class OscMixerConnection {
             }
         })
         .on('error', (error: any) => {
+            window.storeRedux.dispatch({
+                type: SET_MIXER_ONLINE,
+                mixerOnline: false
+            });
             console.log("Error : ", error);
             console.log("Lost OSC connection");
         });
@@ -157,8 +215,8 @@ export class OscMixerConnection {
     }
 
     pingMixerCommand() {
-        //Ping OSC mixer if mixerProtocol needs it.
-        this.mixerProtocol.pingCommand.map((command) => {
+         //Ping OSC mixer if mixerProtocol needs it.
+         this.mixerProtocol.pingCommand.map((command) => {
             this.sendOutMessage(
                 command.mixerMessage,
                 0,
@@ -166,6 +224,12 @@ export class OscMixerConnection {
                 command.type
             );
         });
+        this.mixerOnlineTimer = setTimeout(() => {
+            window.storeRedux.dispatch({
+                type: SET_MIXER_ONLINE,
+                mixerOnline: false
+            });
+        }, this.mixerProtocol.pingTime)
     }
 
     checkOscCommand(message: string, command: string) {
@@ -252,6 +316,10 @@ export class OscMixerConnection {
             );
         }
     }
+
+    updateMuteState(channelIndex: number, muteOn: boolean) {
+        return true
+    } 
 
     updateNextAux(channelIndex: number, level: number) {
         return true

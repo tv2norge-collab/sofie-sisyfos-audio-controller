@@ -16,6 +16,16 @@ export const ArdourMaster: IMixerProtocol = {
             zero: 0.75
         }
     ],
+    pingResponseCommand: [
+        {
+            mixerMessage: "/strip/list",
+            value: "",
+            type: "",
+            min: 0,
+            max: 1,
+            zero: 0.75
+        }
+    ],
     pingTime: 9500,
     initializeCommands: [
         {
@@ -37,6 +47,8 @@ export const ArdourMaster: IMixerProtocol = {
             CHANNEL_NAME: [{ mixerMessage: '/strip/name/{channel}', value: 0, type: 'f', min: 0, max: 1, zero: 0.75}],
             PFL: [emptyMixerMessage()],
             AUX_SEND: [emptyMixerMessage()],
+            CHANNEL_MUTE_ON: [emptyMixerMessage()],
+            CHANNEL_MUTE_OFF: [emptyMixerMessage()]
         },
         toMixer: {
             CHANNEL_FADER_LEVEL: [emptyMixerMessage()],
@@ -45,6 +57,8 @@ export const ArdourMaster: IMixerProtocol = {
             PFL_ON: [emptyMixerMessage()],
             PFL_OFF: [emptyMixerMessage()],
             AUX_SEND: [emptyMixerMessage()],
+            CHANNEL_MUTE_ON: [emptyMixerMessage()],
+            CHANNEL_MUTE_OFF: [emptyMixerMessage()]
     }
     }],
     fader: {

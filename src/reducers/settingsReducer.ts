@@ -1,9 +1,19 @@
 import * as DEFAULTS from '../constants/DEFAULTS';
 import { MixerProtocolPresets } from '../constants/MixerProtocolPresets';
+import { 
+    TOGGLE_SHOW_CHAN_STRIP,
+    TOGGLE_SHOW_OPTION,
+    TOGGLE_SHOW_SETTINGS,
+    TOGGLE_SHOW_SNAPS,
+    TOGGLE_SHOW_STORAGE,
+    UPDATE_SETTINGS,
+    SET_MIXER_ONLINE
+} from  '../reducers/settingsActions'
 
 export interface ISettings {
     showSnaps: boolean,
     showSettings: boolean,
+    showChanStrip: number,
     showOptions: number | false,
     showStorage: boolean,
     mixerProtocol: string,
@@ -24,8 +34,10 @@ export interface ISettings {
     voFadeTime: number, // Default fade time for VO ON - OFF
     voLevel: number,  // Relative level of PGM in %
     autoResetLevel: number, // Autoreset before pgm on, if level is lower than in %
-    automationMode: boolean, 
-    showPfl: boolean
+    automationMode: boolean,
+    offtubeMode: boolean,
+    showPfl: boolean,
+    mixerOnline: boolean
 }
 
 
@@ -33,6 +45,7 @@ const defaultSettingsReducerState: Array<ISettings> = [
     {
         showSnaps: false,
         showSettings: false,
+        showChanStrip: -1,
         showOptions: false,
         showStorage: false,
         mixerProtocol: "genericMidi",
@@ -52,9 +65,11 @@ const defaultSettingsReducerState: Array<ISettings> = [
         voLevel: 20,
         autoResetLevel: 10,
         automationMode: true,
+        offtubeMode: false,
         fadeTime: 60,
         voFadeTime: 200, 
-        showPfl: false
+        showPfl: false,
+        mixerOnline: false
     },
 ];
 
@@ -62,19 +77,25 @@ export const settings = (state = defaultSettingsReducerState, action: any): Arra
     let nextState = [Object.assign({}, state[0])];
 
     switch (action.type) {
-        case 'TOGGLE_SHOW_SETTINGS':
+        case TOGGLE_SHOW_SETTINGS:
             nextState[0].showSettings = !nextState[0].showSettings;
             return nextState;
-        case 'TOGGLE_SHOW_OPTION':
+        case TOGGLE_SHOW_CHAN_STRIP:
+            nextState[0].showChanStrip = action.channel;
+            return nextState;
+        case TOGGLE_SHOW_OPTION:
             nextState[0].showOptions = typeof nextState[0].showOptions === 'number' ? false : action.channel;
             return nextState;
-        case 'TOGGLE_SHOW_STORAGE':
+        case TOGGLE_SHOW_STORAGE:
             nextState[0].showStorage = !nextState[0].showStorage;
             return nextState;
-        case 'TOGGLE_SHOW_SNAPS':
+        case TOGGLE_SHOW_SNAPS:
             nextState[0].showSnaps = !nextState[0].showSnaps;
             return nextState;
-        case 'UPDATE_SETTINGS':
+        case SET_MIXER_ONLINE:
+            nextState[0].mixerOnline = action.mixerOnline;
+            return nextState;
+        case UPDATE_SETTINGS:
             nextState[0] = action.settings;
             nextState[0].showOptions = false;
             nextState[0].showStorage = false;
@@ -83,8 +104,7 @@ export const settings = (state = defaultSettingsReducerState, action: any): Arra
                     nextState[0].mixerProtocol = 'genericMidi';
                 }
             return nextState;
-
         default:
-        return nextState;
+            return nextState;
     }
 };

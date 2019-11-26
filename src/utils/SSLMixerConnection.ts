@@ -1,16 +1,24 @@
 //Node Modules:
-import * as os from 'os'; // Used to display (log) network addresses on local machine
 import * as net from 'net'
 
 //Utils:
-import { IMixerProtocol } from '../constants/MixerProtocolInterface';
-import { IStore } from '../reducers/indexReducer';
+import { IMixerProtocol } from '../constants/MixerProtocolInterface'
+import { IStore } from '../reducers/indexReducer'
+import { SET_OUTPUT_LEVEL } from '../reducers/channelActions'
+import { 
+    SET_FADER_LEVEL,
+    TOGGLE_PGM,
+    SET_MUTE
+ } from  '../reducers/faderActions'
+import { SET_MIXER_ONLINE } from '../reducers/settingsActions';
+
 
 export class SSLMixerConnection {
     store: IStore;
     mixerProtocol: IMixerProtocol;
     cmdChannelIndex: number;
     SSLConnection: any;
+    mixerOnlineTimer: any;
 
     constructor(mixerProtocol: IMixerProtocol) {
         this.sendOutLevelMessage = this.sendOutLevelMessage.bind(this);
@@ -18,6 +26,11 @@ export class SSLMixerConnection {
         this.store = window.storeRedux.getState();
         const unsubscribe = window.storeRedux.subscribe(() => {
             this.store = window.storeRedux.getState();
+        });
+
+        window.storeRedux.dispatch({
+            type: SET_MIXER_ONLINE,
+            mixerOnline: false
         });
 
         this.mixerProtocol = mixerProtocol;
@@ -45,8 +58,15 @@ export class SSLMixerConnection {
       }
 
     setupMixerConnection() {
+        // Return command was an acknowledge:
+        let lastWasAck = false
+
         this.SSLConnection
             .on("ready", () => {
+                window.storeRedux.dispatch({
+                    type: SET_MIXER_ONLINE,
+                    mixerOnline: true
+                });
                 console.log("Receiving state of desk");
                 this.mixerProtocol.initializeCommands.map((item) => {
                     if (item.mixerMessage.includes("{channel}")) {
@@ -59,57 +79,109 @@ export class SSLMixerConnection {
                 });
             })
             .on('data', (data: any) => {
+                clearTimeout(this.mixerOnlineTimer)
+                window.storeRedux.dispatch({
+                    type: SET_MIXER_ONLINE,
+                    mixerOnline: true
+                });
+                
                 let buffers = []
                 let lastIndex = 0
                 for (let index=1; index<data.length; index++) {
                     if (data[index] === 241) {
                         buffers.push(data.slice(lastIndex, index - 1))
+                        lastIndex = index
                     } 
                 }
                 if (buffers.length === 0) {
-                    buffers.push(data)
+                    buffers.push(data)  
                 }
 
                 buffers.forEach((buffer) => {
-                    if (buffer[1] !== 6) {
-                        let commandHex = buffer.toString('hex')
-                        console.log('Receieve Buffer Hex: ', this.formatHexWithSpaces(commandHex, ' ', 2))
-                    } else if (buffer[1] === 6) {
-
+                    if (buffer[1] === 6 && buffer[2] === 255 && !lastWasAck) {
+                        lastWasAck = false
+                        // FADERLEVEL COMMAND:
                         let commandHex = buffer.toString('hex')
                         let channel = buffer[6]
                         let value = buffer.readUInt16BE(7)/1024
-                        console.log('Receive Buffer Hex: ', this.formatHexWithSpaces(commandHex, ' ', 2))
-//                        console.log('Buffer Channel: ', channel)
-//                        console.log('Buffer Value: ', value)
                         
-                        let assignedFader = 1 + this.store.channels[0].channel[channel].assignedFader
-                        if (!this.store.channels[0].channel[channel].fadeActive
-                            && value > this.mixerProtocol.fader.min) {
-                            window.storeRedux.dispatch({
-                                type: 'SET_FADER_LEVEL',
-                                channel: assignedFader - 1,
-                                level: value
-                            });
-                            if (!this.store.faders[0].fader[assignedFader - 1].pgmOn) {
+                        let assignedFaderIndex = this.store.channels[0].channel[channel].assignedFader
+                        if (!this.store.channels[0].channel[channel].fadeActive) {    
+                            if (value > this.mixerProtocol.fader.min + (this.mixerProtocol.fader.max * this.store.settings[0].autoResetLevel / 100)) {
                                 window.storeRedux.dispatch({
-                                    type: 'TOGGLE_PGM',
-                                    channel: assignedFader - 1
+                                    type: SET_FADER_LEVEL,
+                                    channel: assignedFaderIndex,
+                                    level: value
                                 });
-                            }
-                            
-                            if (window.huiRemoteConnection) {
-                                window.huiRemoteConnection.updateRemoteFaderState(assignedFader - 1, value);
-                            }
-                            if (this.store.faders[0].fader[assignedFader - 1].pgmOn) {
-                                this.store.channels[0].channel.map((channel: any, index: number) => {
-                                    if (channel.assignedFader === assignedFader - 1) {
-                                        this.updateOutLevel(index);
+                                if (!this.store.faders[0].fader[assignedFaderIndex].pgmOn) {
+                                    window.storeRedux.dispatch({
+                                        type: TOGGLE_PGM,
+                                        channel: assignedFaderIndex
+                                    });
+                                }
+                                
+                                if (window.huiRemoteConnection) {
+                                    window.huiRemoteConnection.updateRemoteFaderState(assignedFaderIndex, value);
+                                }
+                                if (this.store.faders[0].fader[assignedFaderIndex].pgmOn) {
+                                    this.store.channels[0].channel.map((channel: any, index: number) => {
+                                        if (channel.assignedFader === assignedFaderIndex) {
+                                            this.updateOutLevel(index);
+                                        }
+                                    })
+                                }
+                            } else if (this.store.faders[0].fader[assignedFaderIndex].pgmOn 
+                                || this.store.faders[0].fader[assignedFaderIndex].voOn)
+                            {
+                                window.storeRedux.dispatch({
+                                    type: SET_FADER_LEVEL,
+                                    channel: assignedFaderIndex,
+                                    level: value
+                                });
+                                this.store.channels[0].channel.forEach((item, index) => {
+                                    if (item.assignedFader === assignedFaderIndex) {
+                                        window.storeRedux.dispatch({
+                                            type: SET_OUTPUT_LEVEL,
+                                            channel: index,
+                                            level: value
+                                        });
                                     }
                                 })
                             }
-                            
                         }
+                        
+                    } else if (buffer[1] === 5 && buffer[2] === 255 && buffer[4] === 1 && !lastWasAck) {
+                        lastWasAck = false
+                        // MUTE ON/OFF COMMAND
+                        let commandHex = buffer.toString('hex')
+                        let channelIndex = buffer[6]
+                        let value: boolean = buffer[7] === 0 ? true : false
+                        console.log('Receive Buffer Channel On/off: ', this.formatHexWithSpaces(commandHex, ' ', 2))
+                        
+                        let assignedFaderIndex = this.store.channels[0].channel[channelIndex].assignedFader
+
+                        window.storeRedux.dispatch({
+                            type: SET_MUTE,
+                            channel: assignedFaderIndex,
+                            muteOn: value
+                        });
+                        
+                        if (window.huiRemoteConnection) {
+                            window.huiRemoteConnection.updateRemoteFaderState(assignedFaderIndex, value);
+                        }
+                        this.store.channels[0].channel.map((channel: any, index: number) => {
+                            if (channel.assignedFader === assignedFaderIndex && index !== channelIndex) {
+                                this.updateMuteState(index, this.store.faders[0].fader[assignedFaderIndex].muteOn);
+                            }
+                        })
+                    } else {
+                        let commandHex = buffer.toString('hex')
+                        console.log('Receieve Buffer Hex: ', this.formatHexWithSpaces(commandHex, ' ', 2))
+                    }
+                    if (buffer[0] === 4) {
+                        lastWasAck = true
+                    }  else {
+                        lastWasAck = false
                     }
                 })    
             })
@@ -117,7 +189,28 @@ export class SSLMixerConnection {
                 console.log("Error : ", error);
                 console.log("Lost SCP connection");
             });
+
+        //Ping OSC mixer to get mixerOnlineState
+        let oscTimer = setInterval(
+            () => {
+                this.pingMixerCommand();
+            },
+            this.mixerProtocol.pingTime
+        );
     }
+
+    pingMixerCommand() {
+        //Ping OSC mixer if mixerProtocol needs it.
+        this.mixerProtocol.pingCommand.map((command) => {
+           this.sendOutPingRequest();
+       });
+       this.mixerOnlineTimer = setTimeout(() => {
+           window.storeRedux.dispatch({
+               type: SET_MIXER_ONLINE,
+               mixerOnline: false
+           });
+       }, this.mixerProtocol.pingTime)
+   }
 
     checkSSLCommand(message: string, command: string) {
         if (!message) return false
@@ -162,6 +255,9 @@ export class SSLMixerConnection {
         if (typeof value === 'string') {
             value = parseFloat(value)
         }
+        if (value < 0) { 
+            value = 0
+        }
         valueNumber = value * 1024
         let valueByte = new Uint8Array([
             (valueNumber & 0x0000ff00) >> 8,
@@ -198,13 +294,23 @@ export class SSLMixerConnection {
         this.SSLConnection.write(buf)
     }
 
+    sendOutPingRequest() {
+        let sslMessage = 'f1 02 00 07 00'
+        sslMessage = sslMessage + ' ' + this.calculate_checksum8(sslMessage.slice(9))
+        let a = sslMessage.split(' ')
+        let buf = new Buffer(a.map((val:string) => { return parseInt(val, 16) }))
+        
+        console.log("Send HEX: ", sslMessage) 
+        this.SSLConnection.write(buf)
+    }
+
     updateOutLevel(channelIndex: number) {
         let channelType = this.store.channels[0].channel[channelIndex].channelType;
         let channelTypeIndex = this.store.channels[0].channel[channelIndex].channelTypeIndex;
         let faderIndex = this.store.channels[0].channel[channelIndex].assignedFader;
         if (this.store.faders[0].fader[faderIndex].pgmOn) {
             window.storeRedux.dispatch({
-                type:'SET_OUTPUT_LEVEL',
+                type:SET_OUTPUT_LEVEL,
                 channel: channelIndex,
                 level: this.store.faders[0].fader[faderIndex].faderLevel
             });
@@ -231,6 +337,22 @@ export class SSLMixerConnection {
             );
         }
     }
+
+    updateMuteState(channelIndex: number, muteOn: boolean) {
+        let channelType = this.store.channels[0].channel[channelIndex].channelType;
+        let channelTypeIndex = this.store.channels[0].channel[channelIndex].channelTypeIndex;
+        if (muteOn === true) {
+            this.sendOutRequest(
+                this.mixerProtocol.channelTypes[channelType].toMixer.CHANNEL_MUTE_ON[0].mixerMessage,
+                channelTypeIndex
+            );
+        } else {
+            this.sendOutRequest(
+                this.mixerProtocol.channelTypes[channelType].toMixer.CHANNEL_MUTE_OFF[0].mixerMessage,
+                channelTypeIndex
+            );
+        }
+    } 
 
     updateFadeIOLevel(channelIndex: number, outputLevel: number) {
         let channelType = this.store.channels[0].channel[channelIndex].channelType;

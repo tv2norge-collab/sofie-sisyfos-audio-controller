@@ -3,6 +3,7 @@
     flex-direction: row;
     background-color: black;
     min-height: 760px;
+    margin-top: 25vh;
 }
 
 .channels-mix-body {
@@ -12,6 +13,25 @@
     background-color: #2f2f2f;
     margin: 4px;
     border-radius: 10px;
+}
+
+.channels-show-mixer-online {
+    outline : none;
+    -moz-outline : none;
+    color: rgb(102, 102, 102);
+    height: 60px;
+    width: 90px;
+    border-color: rgb(71, 71, 71);
+    background-color: rgb(48, 1, 1);
+    margin-left: 5px;
+    margin-right: 4px;
+    margin-top: 10px;
+    border-radius: 7px;
+}
+
+.channels-show-mixer-online.connected {
+    background-color: rgb(9, 107, 0);
+    color: white;
 }
 
 .channels-show-snaps-button {

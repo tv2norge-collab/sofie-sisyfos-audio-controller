@@ -1,8 +1,14 @@
-import * as DEFAULTS from '../constants/DEFAULTS';
+import { 
+    SET_OUTPUT_LEVEL,
+    SET_ASSIGNED_FADER,
+    SET_COMPLETE_CH_STATE,
+    SET_OPTION,
+    SET_PRIVATE,
+    FADE_ACTIVE
+} from './channelActions'
 
 export interface IChannels {
-    channel: Array<IChannel>,
-    vuMeters: Array<IVuMeters>,
+    channel: Array<IChannel>
 }
 
 export interface IChannel {
@@ -16,14 +22,9 @@ export interface IChannel {
     }
 }
 
-interface IVuMeters {
-    vuVal: number
-}
-
 const defaultChannelsReducerState = (numberOfTypeChannels: Array<number>) => {
     let defaultObj: Array<IChannels> = [{
-        channel: [],
-        vuMeters: [],
+        channel: []
     }];
 
     let totalNumberOfChannels = 0;
@@ -36,9 +37,6 @@ const defaultChannelsReducerState = (numberOfTypeChannels: Array<number>) => {
                 fadeActive: false,
                 outputLevel: 0.0,
             });
-            defaultObj[0].vuMeters.push({
-                vuVal: 0.0
-            });
             totalNumberOfChannels ++;
         }
     })
@@ -48,20 +46,14 @@ const defaultChannelsReducerState = (numberOfTypeChannels: Array<number>) => {
 export const channels = ((state = defaultChannelsReducerState([1]), action: any): Array<IChannels> => {
 
     let nextState = [{
-        vuMeters: [...state[0].vuMeters],
-        channel: [...state[0].channel],
+        channel: [...state[0].channel]
     }];
 
     switch(action.type) {
-        case 'SET_OUTPUT_LEVEL': //channel:  level:
+        case SET_OUTPUT_LEVEL: //channel:  level:
             nextState[0].channel[action.channel].outputLevel = parseFloat(action.level);
             return nextState;
-        case 'SET_VU_LEVEL': //channel:  level:
-            if (typeof nextState[0].vuMeters[action.channel] !== 'undefined') {
-                nextState[0].vuMeters[action.channel].vuVal = parseFloat(action.level);
-            }
-            return nextState;
-        case 'SET_COMPLETE_CH_STATE': //allState  //numberOfChannels
+        case SET_COMPLETE_CH_STATE: //allState  //numberOfChannels
             nextState = defaultChannelsReducerState(action.numberOfTypeChannels);
             if (action.allState.channel.length == nextState[0].channel.length) {
                 action.allState.channel.map((channel: any, index: number) => {
@@ -71,23 +63,21 @@ export const channels = ((state = defaultChannelsReducerState([1]), action: any)
                 });
             }
             return nextState;
-        case 'FADE_ACTIVE':
+        case FADE_ACTIVE:
             nextState[0].channel[action.channel].fadeActive = !!action.active;
             return nextState;
-        case 'SET_ALL_VU_LEVELS': //channel:  level:
-            nextState[0].vuMeters = action.vuMeters;
-            return nextState;
-        case 'SET_ASSIGNED_FADER': //channel:  faderNumber:
+        case SET_ASSIGNED_FADER: //channel:  faderNumber:
             nextState[0].channel[action.channel].assignedFader = action.faderNumber
             return nextState;
-        case 'SET_PRIVATE':
+        case SET_PRIVATE:
             if (!nextState[0].channel[action.channel].private) {
                 nextState[0].channel[action.channel].private = {};
             }
             nextState[0].channel[action.channel].private![action.tag] = action.value;
             return nextState;
-        case 'SET_OPTION':
+        case SET_OPTION:
             console.log(action);
+            // TODO: This should be changed, as it´s not the "redux" way of handling it.
             window.mixerGenericConnection.updateChannelSettings(action.channel, action.prop, action.option);
             return nextState;
         default:

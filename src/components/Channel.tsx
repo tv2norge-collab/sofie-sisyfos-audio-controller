@@ -10,8 +10,20 @@ import ReactSlider from 'react-slider'
 //assets:
 import '../assets/css/Channel.css';
 import { MixerProtocolPresets} from '../constants/MixerProtocolPresets';
-import { IMixerProtocolGeneric, ICasparCGMixerGeometry } from '../constants/MixerProtocolInterface';
-import { any, number } from 'prop-types';
+import { IMixerProtocolGeneric } from '../constants/MixerProtocolInterface';
+import { 
+    SET_FADER_LEVEL, 
+    TOGGLE_PGM,
+    TOGGLE_VO,
+    TOGGLE_PST,
+    TOGGLE_PFL,
+    TOGGLE_MUTE,
+    TOGGLE_SNAP
+} from '../reducers/faderActions'
+import { 
+    TOGGLE_SHOW_CHAN_STRIP,
+    TOGGLE_SHOW_OPTION
+} from '../reducers/settingsActions'
 
 interface IChannelInjectProps {
     pgmOn: boolean,
@@ -19,16 +31,19 @@ interface IChannelInjectProps {
     pstOn: boolean,
     pstVoOn: boolean,
     pflOn: boolean,
+    muteOn: boolean,
     channelType: number,
     channelTypeIndex: number,
     showChannel: boolean,
+    showChanStrip: boolean,
     faderLevel: number,
     label: string,
     snapOn: boolean[],
     mixerProtocol: string,
     showSnaps: boolean,
     automationMode: boolean,
-    showPfl: boolean
+    offtubeMode: boolean,
+    showPfl: boolean,
 }
 
 interface IChannelProps {
@@ -63,13 +78,15 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
             nextProps.mixerProtocol != this.props.mixerProtocol ||
             nextProps.showSnaps != this.props.showSnaps ||
             nextProps.showPfl != this.props.showPfl ||
+            nextProps.showChanStrip != this.props.showChanStrip ||
             snapChanged
         )
     }
 
     handlePgm() {
+        window.mixerGenericConnection.checkForAutoResetThreshold(this.channelIndex)
         this.props.dispatch({
-            type:'TOGGLE_PGM',
+            type: TOGGLE_PGM,
             channel: this.channelIndex
         });
         window.mixerGenericConnection.updateOutLevel(this.channelIndex);
@@ -79,8 +96,9 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
     }
 
     handleVo() {
+        window.mixerGenericConnection.checkForAutoResetThreshold(this.channelIndex)
         this.props.dispatch({
-            type:'TOGGLE_VO',
+            type: TOGGLE_VO,
             channel: this.channelIndex
         });
         window.mixerGenericConnection.updateOutLevel(this.channelIndex);
@@ -91,7 +109,7 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
 
     handlePst() {        
         this.props.dispatch({
-            type:'TOGGLE_PST',
+            type: TOGGLE_PST,
             channel: this.channelIndex
         });
         window.mixerGenericConnection.updateNextAux(this.channelIndex);
@@ -99,7 +117,7 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
 
     handlePfl() {
         this.props.dispatch({
-            type:'TOGGLE_PFL',
+            type: TOGGLE_PFL,
             channel: this.channelIndex
         });
         window.mixerGenericConnection.updatePflState(this.channelIndex);
@@ -108,9 +126,20 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
         }
     }
 
+    handleMute() {
+        this.props.dispatch({
+            type: TOGGLE_MUTE,
+            channel: this.channelIndex
+        });
+        window.mixerGenericConnection.updateMuteState(this.channelIndex);
+        if (window.huiRemoteConnection) {
+            window.huiRemoteConnection.updateRemotePgmPstPfl(this.channelIndex);
+        }
+    }
+
     handleLevel(event: any) {
         this.props.dispatch({
-            type:'SET_FADER_LEVEL',
+            type: SET_FADER_LEVEL,
             channel: this.channelIndex,
             level: parseFloat(event)
         });
@@ -123,7 +152,7 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
 
     handleSnap(snapIndex: number) {
         this.props.dispatch({
-            type:'SET_SNAP',
+            type: TOGGLE_SNAP,
             channel: this.channelIndex,
             snapIndex: snapIndex
         });
@@ -131,16 +160,27 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
 
     handleShowOptions() {
         this.props.dispatch({
-            type: 'TOGGLE_SHOW_OPTION',
+            type: TOGGLE_SHOW_OPTION,
+            channel: this.channelIndex
+        });
+    }
+
+    handleShowChanStrip() {
+        this.props.dispatch({
+            type: TOGGLE_SHOW_CHAN_STRIP,
             channel: this.channelIndex
         });
     }
 
     fader() {
+        let thumb = 'channel-volume-thumb' + (this.props.pgmOn ? '-color-pgm' : '') +  (this.props.voOn ? '-color-vo' : '')
+        if (this.props.muteOn) {
+            thumb = 'channel-volume-thumb-color-mute'
+        }
         return (
             <ReactSlider 
                 className="channel-volume-fader"
-                thumbClassName="channel-volume-thumb"
+                thumbClassName = { thumb }
                 orientation="vertical"
                 invert
                 min={0}
@@ -154,12 +194,14 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
         )
     }
 
+
     pgmButton = () => {
         return (
 
             <button
                 className={ClassNames("channel-pgm-button", {
-                    'on': this.props.pgmOn
+                    'on': this.props.pgmOn,
+                    'mute': this.props.muteOn
                 })}
                 onClick={event => {
                     this.handlePgm();
@@ -176,7 +218,8 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
 
             <button
                 className={ClassNames("channel-vo-button", {
-                    'on': this.props.voOn
+                    'on': this.props.voOn,
+                    'mute': this.props.muteOn,
                 })}
                 onClick={event => {
                     this.handleVo();
@@ -200,7 +243,7 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
             >
             {this.props.automationMode ? 
                 <React.Fragment>
-                    NEXT
+                    CUE NEXT
                 </React.Fragment>
                 :
                 <React.Fragment>
@@ -211,6 +254,20 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
         )
     }
 
+    chanStripButton = () => {
+        return (
+            <button
+                className={ClassNames("channel-strip-button", {
+                    'on': this.props.showChanStrip
+                })}
+                onClick={event => {
+                    this.handleShowChanStrip();
+                }}
+            >
+            {this.props.label != "" ? this.props.label : (this.mixerProtocol.channelTypes[this.props.channelType].channelTypeName + " " + (this.props.channelTypeIndex + 1)) }
+            </button>
+        )
+    }
 
     pflButton = () => {
         return (
@@ -224,6 +281,22 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
             >PFL</button>
         )
     }
+
+    muteButton = () => {
+        return (
+            <button
+                className={ClassNames("channel-mute-button", {
+                    'on': this.props.muteOn
+                })}
+                onClick={event => {
+                    this.handleMute();
+                }}
+            >
+            MUTE
+            </button>
+        )
+    }
+
 
     snapButton = (snapIndex: number) => {
         if (this.props.showSnaps) {
@@ -245,40 +318,21 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
         }
     }
 
-    channelSettings = () => {
-        return <React.Fragment>
-            <button className="channel-settings" onClick={e => this.handleShowOptions()}>
-                <svg version="1.1" id="cogwheel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340.274 340.274">
-                    <g>
-                        <path d="M293.629,127.806l-5.795-13.739c19.846-44.856,18.53-46.189,14.676-50.08l-25.353-24.77l-2.516-2.12h-2.937
-                            c-1.549,0-6.173,0-44.712,17.48l-14.184-5.719c-18.332-45.444-20.212-45.444-25.58-45.444h-35.765
-                            c-5.362,0-7.446-0.006-24.448,45.606l-14.123,5.734C86.848,43.757,71.574,38.19,67.452,38.19l-3.381,0.105L36.801,65.032
-                            c-4.138,3.891-5.582,5.263,15.402,49.425l-5.774,13.691C0,146.097,0,147.838,0,153.33v35.068c0,5.501,0,7.44,46.585,24.127
-                            l5.773,13.667c-19.843,44.832-18.51,46.178-14.655,50.032l25.353,24.8l2.522,2.168h2.951c1.525,0,6.092,0,44.685-17.516
-                            l14.159,5.758c18.335,45.438,20.218,45.427,25.598,45.427h35.771c5.47,0,7.41,0,24.463-45.589l14.195-5.74
-                            c26.014,11,41.253,16.585,45.349,16.585l3.404-0.096l27.479-26.901c3.909-3.945,5.278-5.309-15.589-49.288l5.734-13.702
-                            c46.496-17.967,46.496-19.853,46.496-25.221v-35.029C340.268,146.361,340.268,144.434,293.629,127.806z M170.128,228.474
-                            c-32.798,0-59.504-26.187-59.504-58.364c0-32.153,26.707-58.315,59.504-58.315c32.78,0,59.43,26.168,59.43,58.315
-                            C229.552,202.287,202.902,228.474,170.128,228.474z"/>
-                    </g>
-                </svg>
-            </button>
-        </React.Fragment>
-    }
-
     render() {
         return (
         this.props.showChannel === false ?
             null
             :
             <div
-                /*style={{backgroundColor: this.mixerProtocol.channelTypes[this.props.channelType].channelTypeColor}}*/
                 className={
                     ClassNames("channel-body", {
                     "with-snaps": this.props.showSnaps,
                     "with-pfl": this.props.showPfl,
+                    "mute-on": this.props.muteOn
                 })}>
-                {this.channelSettings()}
+                {this.muteButton()}
+                <br/>
+                <h4 className="channel-zero-indicator">_____</h4>
                 {this.fader()}
                 <VuMeter channelIndex = {this.channelIndex}/>
                 <br/>
@@ -291,8 +345,13 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
                     </React.Fragment>
                     : null
                 }
-                {this.pstButton()}
-                <br />
+                {this.props.offtubeMode ?
+                    null :
+                    <React.Fragment>
+                        {this.pstButton()}
+                        <br/>
+                    </React.Fragment>
+                }
                 {this.props.showPfl ?
                     <React.Fragment>
                         {this.pflButton()}
@@ -300,8 +359,11 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
                     </React.Fragment>
                     : null
                 }
+                <React.Fragment>
+                    {this.chanStripButton()}
+                    <br/>
+                </React.Fragment>
                 <div className="channel-name">
-                    {this.props.label != "" ? this.props.label : (this.mixerProtocol.channelTypes[this.props.channelType].channelTypeName + " " + (this.props.channelTypeIndex + 1)) }
                 </div>
                 <div className="channel-snap-body">
                     {this.props.snapOn
@@ -322,6 +384,7 @@ const mapStateToProps = (state: any, props: any): IChannelInjectProps => {
         pstOn: state.faders[0].fader[props.channelIndex].pstOn,
         pstVoOn: state.faders[0].fader[props.channelIndex].pstVoOn,
         pflOn: state.faders[0].fader[props.channelIndex].pflOn,
+        muteOn: state.faders[0].fader[props.channelIndex].muteOn,
         showChannel: state.faders[0].fader[props.channelIndex].showChannel,
         faderLevel: state.faders[0].fader[props.channelIndex].faderLevel,
         channelType: 0, /*state.channels[0].channel[props.channelIndex].channelType, */
@@ -330,8 +393,10 @@ const mapStateToProps = (state: any, props: any): IChannelInjectProps => {
         snapOn: state.faders[0].fader[props.channelIndex].snapOn.map((item: number) => {return item}),
         mixerProtocol: state.settings[0].mixerProtocol,
         automationMode: state.settings[0].automationMode,
+        offtubeMode: state.settings[0].offtubeMode,
         showSnaps: state.settings[0].showSnaps,
-        showPfl: state.settings[0].showPfl
+        showChanStrip: state.settings[0].showChanStrip,
+        showPfl: state.settings[0].showPfl,
     }
 }
 
