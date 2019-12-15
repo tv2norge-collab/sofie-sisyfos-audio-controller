@@ -7,7 +7,7 @@ import { IMixerProtocol } from '../constants/MixerProtocolInterface';
 import { behringerMeter } from './productSpecific/behringer';
 import { midasMeter } from './productSpecific/midas';
 import { IStore } from '../reducers/indexReducer';
-import { SET_OUTPUT_LEVEL } from '../reducers/channelActions'
+import { SET_OUTPUT_LEVEL, SET_AUX_LEVEL } from '../reducers/channelActions'
 import { 
     SET_VU_LEVEL, 
     SET_FADER_LEVEL,
@@ -91,49 +91,12 @@ export class OscMixerConnection {
                     });
                 }
             } else if ( this.checkOscCommand(message.address, this.mixerProtocol.channelTypes[0].fromMixer
-                .CHANNEL_FADER_LEVEL[0].mixerMessage)){
-                let ch = message.address.split("/")[this.cmdChannelIndex];
-                let assignedFader = 1 + this.store.channels[0].channel[ch - 1].assignedFader
-
-                window.storeRedux.dispatch({
-                    type: SET_FADER_LEVEL,
-                    channel: assignedFader - 1,
-                    level: message.args[0]
-                });
-
-
-                if (this.store.faders[0].fader[assignedFader - 1].pgmOn)
-                {
-                    this.store.channels[0].channel.map((channel: any, index: number) => {
-                        if (channel.assignedFader === assignedFader - 1) {
-                            window.storeRedux.dispatch({
-                                type:SET_OUTPUT_LEVEL,
-                                channel: index,
-                                level: message.args[0]
-                            });
-                            this.updateFadeIOLevel(index, this.store.faders[0].fader[assignedFader - 1].faderLevel);
-                        }
-                    })
-                }
-
-                if (!this.store.faders[0].fader[assignedFader - 1].pgmOn) {
-                    window.storeRedux.dispatch({
-                        type: TOGGLE_PGM,
-                        channel: assignedFader - 1
-                    });
-                }
-
-                if (window.huiRemoteConnection) {
-                    window.huiRemoteConnection.updateRemoteFaderState(assignedFader-1, message.args[0]);
-                }
-            } else if ( this.checkOscCommand(message.address, this.mixerProtocol.channelTypes[0].fromMixer
                 .CHANNEL_OUT_GAIN[0].mixerMessage)){
                 let ch = message.address.split("/")[this.cmdChannelIndex];
                 let assignedFaderIndex = this.store.channels[0].channel[ch - 1].assignedFader
 
 
-                if (this.mixerProtocol.mode === 'master'
-                    && !this.store.channels[0].channel[ch - 1].fadeActive)
+                if (!this.store.channels[0].channel[ch - 1].fadeActive)
                     {                    
                     if  (message.args[0] > this.mixerProtocol.fader.min + (this.mixerProtocol.fader.max * this.store.settings[0].autoResetLevel / 100)) {
                         window.storeRedux.dispatch({
@@ -180,6 +143,30 @@ export class OscMixerConnection {
                         window.huiRemoteConnection.updateRemoteFaderState(assignedFaderIndex, message.args[0]);
                     }
                 } 
+            } else if ( this.checkOscCommand(message.address, this.mixerProtocol.channelTypes[0].fromMixer
+                .AUX_LEVEL[0].mixerMessage)){
+
+                let commandArray: string[] = this.mixerProtocol.channelTypes[0].fromMixer
+                .AUX_LEVEL[0].mixerMessage.split('/')
+                let messageArray: string[] = message.address.split('/')
+                let ch = 0
+                let auxIndex = 0
+
+                commandArray.forEach((commandPart: string, index: number) => {
+                    if (commandPart === '{channel}') {
+                        ch = parseFloat(messageArray[index])
+                    } else if (commandPart === '{argument}') {
+                        auxIndex = parseFloat(messageArray[index]) - 1
+                    }
+                })
+
+                window.storeRedux.dispatch({
+                    type: SET_AUX_LEVEL,
+                    channel: ch - 1,
+                    auxIndex: auxIndex,
+                    level: message.args[0]
+                });
+ 
             } else if (this.checkOscCommand(message.address, this.mixerProtocol.channelTypes[0].fromMixer
                 .CHANNEL_NAME[0].mixerMessage)) {
                                     let ch = message.address.split("/")[this.cmdChannelIndex];
@@ -232,25 +219,22 @@ export class OscMixerConnection {
         }, this.mixerProtocol.pingTime)
     }
 
-    checkOscCommand(message: string, command: string) {
+    checkOscCommand(message: string, command: string): boolean {
         if (message === command) return true;
+        let messageArray: string[] = message.split('/')
+        let commandArray: string[] = command.split('/')
+        let status: boolean = true
 
-        let cmdArray = command.split("{channel}");
-        if (message.substr(0, cmdArray[0].length) === cmdArray[0])
-        {
-            if (
-                message.substr(-cmdArray[1].length) === cmdArray[1] &&
-                message.length >= command.replace("{channel}", "").length
-            ) {
-                return true;
-            } else if (
-                cmdArray[1] === "" &&
-                message.length >= command.replace("{channel}", "").length
-            ) {
-                return true;
-            }
-        }
-        return false;
+        commandArray.forEach((commandPart: string, index: number) => {
+            if (commandPart === '{channel}') {
+                if (typeof(parseFloat(messageArray[index])) !== 'number') { status = false }
+            } else if (commandPart === '{argument}') {
+                if (typeof(parseFloat(messageArray[index])) !== 'number') { status = false }
+            } else if (commandPart !== messageArray[index]) {
+                status = false
+            }            
+        })
+        return status
     }
 
     sendOutMessage(oscMessage: string, channel: number, value: string | number, type: string) {
@@ -323,7 +307,83 @@ export class OscMixerConnection {
 
     updateNextAux(channelIndex: number, level: number) {
         return true
-    } 
+    }
+
+    updateThreshold(channelIndex: number, level: number) {
+        let channelType = this.store.channels[0].channel[channelIndex].channelType;
+        let channelTypeIndex = this.store.channels[0].channel[channelIndex].channelTypeIndex;
+        let thr = this.mixerProtocol.channelTypes[channelType].toMixer.THRESHOLD[0]
+        level = level * (thr.max-thr.min) + thr.min
+        this.sendOutMessage(
+            thr.mixerMessage,
+            channelTypeIndex+1,
+            level,
+            "f"
+        );
+    }
+    updateRatio(channelIndex: number, level: number) {
+        let channelType = this.store.channels[0].channel[channelIndex].channelType;
+        let channelTypeIndex = this.store.channels[0].channel[channelIndex].channelTypeIndex;
+        let ratio = this.mixerProtocol.channelTypes[channelType].toMixer.RATIO[0]
+        level = level * (ratio.max-ratio.min) + ratio.min
+        this.sendOutMessage(
+            ratio.mixerMessage,
+            channelTypeIndex+1,
+            level,
+            "f"
+        );
+    }
+    updateLow(channelIndex: number, level: number) {
+        let channelType = this.store.channels[0].channel[channelIndex].channelType;
+        let channelTypeIndex = this.store.channels[0].channel[channelIndex].channelTypeIndex;
+        let low = this.mixerProtocol.channelTypes[channelType].toMixer.LOW[0]
+        level = level * (low.max-low.min) + low.min
+        this.sendOutMessage(
+            low.mixerMessage,
+            channelTypeIndex+1,
+            level,
+            "f"
+        );
+    }
+    updateMid(channelIndex: number, level: number) {
+        let channelType = this.store.channels[0].channel[channelIndex].channelType;
+        let channelTypeIndex = this.store.channels[0].channel[channelIndex].channelTypeIndex;
+        let mid = this.mixerProtocol.channelTypes[channelType].toMixer.MID[0]
+        level = level * (mid.max-mid.min) + mid.min
+        this.sendOutMessage(
+            mid.mixerMessage,
+            channelTypeIndex+1,
+            level,
+            "f"
+        );
+    }
+    updateHigh(channelIndex: number, level: number) {
+        let channelType = this.store.channels[0].channel[channelIndex].channelType;
+        let channelTypeIndex = this.store.channels[0].channel[channelIndex].channelTypeIndex;
+        let high = this.mixerProtocol.channelTypes[channelType].toMixer.HIGH[0]
+        level = level * (high.max-high.min) + high.min
+        this.sendOutMessage(
+            high.mixerMessage,
+            channelTypeIndex+1,
+            level,
+            "f"
+        );
+    }
+    updateAuxLevel(channelIndex: number, auxSendIndex: number, level: number) {
+        let channelType = this.store.channels[0].channel[channelIndex].channelType;
+        let channel = this.store.channels[0].channel[channelIndex].channelTypeIndex+1
+        let auxSendCmd = this.mixerProtocol.channelTypes[channelType].toMixer.AUX_LEVEL[0]
+        let auxSendNumber = this.mixerProtocol.leadingZeros ? ("0"+String(auxSendIndex + 1)).slice(-2) : String(auxSendIndex + 1);
+        let message = auxSendCmd.mixerMessage.replace('{argument}', auxSendNumber)
+
+        level = level * (auxSendCmd.max-auxSendCmd.min) + auxSendCmd.min
+        this.sendOutMessage(
+            message,
+            channel,
+            level,
+            "f"
+        );
+    }
 
     
     updateFadeIOLevel(channelIndex: number, outputLevel: number) {
