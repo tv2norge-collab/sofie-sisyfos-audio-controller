@@ -297,10 +297,12 @@ export class OscMixerConnection {
                     if (item.type === 'aux') {
                         state.channels[0].channel.forEach((channel: any, index: number) => {
                             channel.auxLevel.forEach((auxLevel: any, auxIndex: number) => {
+                                if (channel.assignedFader >= 0){
                                 setTimeout(() => {
-                                    this.sendOutRequestAux(item.mixerMessage, auxIndex +1, state.faders[0].fader[channel.assignedFader].monitor)
-                                },
-                                state.faders[0].fader[channel.assignedFader].monitor * 10 + auxIndex * 100)
+                                        this.sendOutRequestAux(item.mixerMessage, auxIndex +1, state.faders[0].fader[channel.assignedFader].monitor)
+                                    },
+                                    state.faders[0].fader[channel.assignedFader].monitor * 10 + auxIndex * 100)
+                                }  
                             })
                         })
                     } else {
@@ -320,7 +322,6 @@ export class OscMixerConnection {
     pingMixerCommand() {
          //Ping OSC mixer if mixerProtocol needs it.
          this.mixerProtocol.pingCommand.map((command) => {
-            logger.verbose('Sending OSC command :' + command.mixerMessage, {})
             this.sendOutMessage(
                 command.mixerMessage,
                 0,
@@ -364,6 +365,7 @@ export class OscMixerConnection {
                 channelString
             );
         if (message != 'none') {
+            logger.verbose('Sending OSC command :' + message, {})
             this.oscConnection.send({
                 address: message,
                 args: [

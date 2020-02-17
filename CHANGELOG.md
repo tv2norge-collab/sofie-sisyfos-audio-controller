@@ -2,6 +2,89 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.9.5](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.9.4...v2.9.5) (2020-02-16)
+
+
+### Bug Fixes
+
+* add preventDefault in onthouchEnd on vo, mute and auto buttons too ([245352a](https://github.com/olzzon/sisyfos-audio-controller/commit/245352a11e1c1b35a7b8d37711ce66c9e82ae838))
+
+### [2.9.4](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.9.3...v2.9.4) (2020-02-15)
+
+
+### Bug Fixes
+
+* always clear fade timer before setting a new one ([028d666](https://github.com/olzzon/sisyfos-audio-controller/commit/028d66620b81c090d2b12f1c0ffb19bdb0e45f67))
+* avoid crash of Sisyfos when selecting Lawo and Studer premilary protocols ([d130205](https://github.com/olzzon/sisyfos-audio-controller/commit/d13020572f0f83d0b3d7869d6121eaaed9a82b87))
+
+### [2.9.3](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.9.2...v2.9.3) (2020-02-14)
+
+
+### Bug Fixes
+
+* handling of touch on pgm-vo-mute-auto buttons without the need for /?multitouch=1 ([d58fd1b](https://github.com/olzzon/sisyfos-audio-controller/commit/d58fd1b5bebb51659dd1b29057540ca4b2cdb3e9))
+
+### [2.9.2](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.9.1...v2.9.2) (2020-02-14)
+
+
+### Bug Fixes
+
+* prevent floating point loop on fader level by setting step to 0.01 ([263d016](https://github.com/olzzon/sisyfos-audio-controller/commit/263d0162e4163cd4b866afe88d50601df23ef8c1))
+
+### [2.9.1](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.9.0...v2.9.1) (2020-02-14)
+
+
+### Bug Fixes
+
+* color of fader-handle dependent on pgm-vo-mute state ([5796eec](https://github.com/olzzon/sisyfos-audio-controller/commit/5796eeca8209a2f171e8a1cfa4ff9a33d3bdd0b2))
+* don´t toggle both on touch & click if multitouch is off ([1b46a47](https://github.com/olzzon/sisyfos-audio-controller/commit/1b46a47218eaa7f879ebe9c2c0e65bacc7effbbe))
+* Fader level was reversed (1-0 instead of 0-1) ([4932128](https://github.com/olzzon/sisyfos-audio-controller/commit/4932128a2ed394a3105eba71e9d12a2f5d79c088))
+* update fader handle color on state shift ([e149456](https://github.com/olzzon/sisyfos-audio-controller/commit/e14945687690a1b309a1f557d0221e6ce370b597))
+
+## [2.9.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.8.0...v2.9.0) (2020-02-12)
+
+
+### Features
+
+* multitouch - add css file. set animate to false for better multiclient multitouch support ([5ed9596](https://github.com/olzzon/sisyfos-audio-controller/commit/5ed95962a4434986c47f1b5b3c32291ed11904cc))
+* multitouch - added styling, moved ChanStrip params back to single touch (using react-slider) ([313089e](https://github.com/olzzon/sisyfos-audio-controller/commit/313089e4a02fe6c80962b3c8892368d34ec7ebcf))
+* multitouch - move to NoUISlider to support multitouch. ToDo CSS ([b59d230](https://github.com/olzzon/sisyfos-audio-controller/commit/b59d230d887ae100b8bd3d3d0882571171dbdefe))
+* multitouch - supporteded on pgm, vo, mute and auto buttons. ([7921d9b](https://github.com/olzzon/sisyfos-audio-controller/commit/7921d9b227177c36b0e143d759d714b8076731a5))
+
+## [2.8.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.7.1...v2.8.0) (2020-02-11)
+
+
+### Features
+
+* implement Sofie iFrame support ([a96215a](https://github.com/olzzon/sisyfos-audio-controller/commit/a96215a9675de754296f07d3b0bb06378e2fc6e3))
+* Sisyfos inside iFrame. Use window.top !== window.self to chech if it´s running inside something ([76ceca9](https://github.com/olzzon/sisyfos-audio-controller/commit/76ceca9a193ae2025b649bef83a669879eac952e))
+* Sisyfos running in iFrame. Use frameElement instead of checking parent. ([bcc3633](https://github.com/olzzon/sisyfos-audio-controller/commit/bcc3633e016b6b9ea7afaaf702500b92ae4b0ea6))
+
+### [2.7.1](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.7.0...v2.7.1) (2020-02-07)
+
+## [2.7.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.6.0...v2.7.0) (2020-02-05)
+
+
+### Features
+
+* Channelstrip Delay Time generic implementation ([0a5a88c](https://github.com/olzzon/sisyfos-audio-controller/commit/0a5a88ccc3dd3ebbb413d364b084153d7b4cdaf8))
+* chanStrip delaybuttons to fineadjust delay value ([7ee1418](https://github.com/olzzon/sisyfos-audio-controller/commit/7ee1418aa5782999daee8f8dcf95880d436a7de7))
+* chanStrip slide in-out fdrom left ([983cefb](https://github.com/olzzon/sisyfos-audio-controller/commit/983cefb1fd2f3a0906c2d7ab737864ec9900e057))
+* disable label transfer to Midas so Sofie can set userlabels in Sisyfos without interfering with the mixer labels ([0e139eb](https://github.com/olzzon/sisyfos-audio-controller/commit/0e139ebba17c651f5ef7bccd6b7d8e7b84dfc347))
+* Midas receive delayTime state ([de94606](https://github.com/olzzon/sisyfos-audio-controller/commit/de94606eb90d26b74da8160b5a9a3bb2fc5a3a1d))
+* Midas/X32 MUTE button support ([e922d5f](https://github.com/olzzon/sisyfos-audio-controller/commit/e922d5f36c385f81536091649a28ed5f4fab5633))
+* offtube mode, make channelstrip area persistent. ([aebb505](https://github.com/olzzon/sisyfos-audio-controller/commit/aebb505457d7ad58bf510157fd8230b4b341077f))
+* wider chanstrip for support of more aux sends ([f6872db](https://github.com/olzzon/sisyfos-audio-controller/commit/f6872dbcd5eeb5196a41f311fdb7b54b7cfee4b7))
+
+
+### Bug Fixes
+
+* chan strip - GUI compressor - delay header was 3 lines ([de6a733](https://github.com/olzzon/sisyfos-audio-controller/commit/de6a73317ef9eec8c140f3a61f09b34dd7dcc105))
+* loading storage with more channels than faders. (e.g. a fader controlling a 5.1 setup) ([93e10ec](https://github.com/olzzon/sisyfos-audio-controller/commit/93e10ec36cc98f3592b6fb10674ab2e8ee64544d))
+* Midas Delay param is between 0 and 1 not ms time ([e535722](https://github.com/olzzon/sisyfos-audio-controller/commit/e53572212d2e80de350e87c375d74fa2b9b61c70))
+* midas protocol missing DELAY_TIME ([12ac11c](https://github.com/olzzon/sisyfos-audio-controller/commit/12ac11c916096b7e7df3726f3319c04642aab018))
+* Type - Midas - fromMixer didn´t have the correct params ([87540f3](https://github.com/olzzon/sisyfos-audio-controller/commit/87540f3515305ad5c2f84349aa8f2df17cecbe2c))
+
 ## [2.6.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v2.5.0...v2.6.0) (2020-01-30)
 
 

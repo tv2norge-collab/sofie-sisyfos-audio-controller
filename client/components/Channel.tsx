@@ -4,8 +4,8 @@ import * as ClassNames from 'classnames';
 import { connect } from "react-redux";
 import VuMeter from './VuMeter';
 import { Store } from 'redux';
-import ReactSlider from 'react-slider'
-
+import Nouislider from 'nouislider-react'
+import '../assets/css/NoUiSlider.css'
 
 //assets:
 import '../assets/css/Channel.css';
@@ -94,23 +94,27 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
     }
 
     fader() {
-        let thumb = 'channel-volume-thumb' + (this.props.fader.pgmOn ? '-color-pgm' : '') +  (this.props.fader.voOn ? '-color-vo' : '')
-        if (this.props.fader.muteOn) {
-            thumb = 'channel-volume-thumb-color-mute'
-        }
         return (
-            <ReactSlider 
-                className="channel-volume-fader"
-                thumbClassName = { thumb }
+            <Nouislider 
+                className={
+                    ClassNames(
+                        {
+                            'channel-volume-fader': true,
+                            "noUi-vertical": true, 
+                        }
+                    )
+                }
                 orientation="vertical"
-                invert
-                min={0}
-                max={1}
+                direction='rtl'
+                animate={false}
+                range={{ min: 0, max: 1 }} 
+                start={[this.props.fader.faderLevel]} 
                 step={0.01}
-                value= {this.props.fader.faderLevel}
-                onChange={(event: any) => {
+                connect
+                onSlide={(event: any) => {
                     this.handleLevel(event);
                 }}
+                
             />
         )
     }
@@ -124,8 +128,12 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
                     'on': this.props.fader.pgmOn,
                     'mute': this.props.fader.muteOn
                 })}
-                onClick={event => {
+                onMouseUp={event => {
                     this.handlePgm();
+                }}
+                onTouchEnd={event => {
+                    event.preventDefault()
+                    this.handlePgm()
                 }}
             >
                 {this.props.fader.label != "" ? this.props.fader.label : ("CH " + (this.faderIndex + 1)) }
@@ -142,9 +150,14 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
                     'on': this.props.fader.voOn,
                     'mute': this.props.fader.muteOn,
                 })}
-                onClick={event => {
+                onMouseUp={event => {
                     this.handleVo();
                 }}
+                onTouchEnd={event => {
+                    event.preventDefault()
+                    this.handleVo()
+                }}
+
             >
                 VO
             </button>
@@ -210,8 +223,12 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
                 className={ClassNames("channel-ignore-button", {
                     'on': this.props.fader.ignoreAutomation
                 })}
-                onClick={event => {
+                onMouseUp={event => {
                     this.handleIgnore();
+                }}
+                onTouchEnd={event => {
+                    event.preventDefault()
+                    this.handleIgnore()
                 }}
             >
             {this.props.fader.ignoreAutomation ? "MANUAL" : "AUTO"}
@@ -225,8 +242,12 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
                 className={ClassNames("channel-mute-button", {
                     'on': this.props.fader.muteOn
                 })}
-                onClick={event => {
+                onMouseUp={event => {
                     this.handleMute();
+                }}
+                onTouchEnd={event => {
+                    event.preventDefault()
+                    this.handleMute()
                 }}
             >
             MUTE
@@ -243,6 +264,8 @@ class Channel extends React.Component<IChannelProps & IChannelInjectProps & Stor
                 className={
                     ClassNames("channel-body", {
                     "with-pfl": this.props.settings.showPfl,
+                    "pgm-on": this.props.fader.pgmOn,
+                    "vo-on": this.props.fader.voOn,
                     "mute-on": this.props.fader.muteOn,
                     "ignore-on": this.props.fader.ignoreAutomation,
                 })}>

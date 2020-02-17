@@ -98,6 +98,15 @@ class ChanStrip extends React.PureComponent<IChanStripProps & IChanStripInjectPr
         )
     }
 
+    changeDelay(currentValue: number, addValue: number) {
+        window.socketIoClient.emit( SOCKET_SET_DELAY_TIME, 
+            {
+                channel: this.props.faderIndex,
+                delayTime: currentValue + addValue
+            }
+        )
+    }
+
     handleLow(event: any) {
         window.socketIoClient.emit( SOCKET_SET_LOW, 
             {
@@ -188,22 +197,58 @@ class ChanStrip extends React.PureComponent<IChanStripProps & IChanStripInjectPr
 
     delay() {
         return (
-            <div className="parameter-text">
-                Time ms
-                <ReactSlider 
-                    className="chan-strip-fader"
-                    thumbClassName = "chan-strip-thumb"
-                    orientation = "vertical"
-                    invert
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value= {this.props.fader[this.props.faderIndex].delayTime || 0}
-                    onChange={(event: any) => {
-                        this.handleDelay(event)
-                    }}
-                />
-            </div>
+            <React.Fragment>
+                <div className="delayButtons">
+                    <button
+                        className="delayTime"
+                        onClick={() => {
+                            this.changeDelay((this.props.fader[this.props.faderIndex].delayTime || 0), 10/500)
+                        }}
+                    >
+                        +10ms
+                    </button>
+                    <button
+                        className="delayTime"
+                        onClick={() => {
+                            this.changeDelay((this.props.fader[this.props.faderIndex].delayTime || 0), 1/500)
+                        }}
+                    >
+                        +1ms
+                    </button>
+                    <button
+                        className="delayTime"
+                        onClick={() => {
+                            this.changeDelay((this.props.fader[this.props.faderIndex].delayTime || 0), -1/500)
+                        }}
+                    >
+                        -1ms
+                    </button>
+                    <button
+                        className="delayTime"
+                        onClick={() => {
+                            this.changeDelay((this.props.fader[this.props.faderIndex].delayTime || 0), -10/500)
+                        }}
+                    >
+                        -10ms
+                    </button>
+                </div>
+                <div className="parameter-text">
+                    {Math.round(500*(this.props.fader[this.props.faderIndex].delayTime || 0))} ms
+                    <ReactSlider 
+                        className="chan-strip-fader"
+                        thumbClassName = "chan-strip-thumb"
+                        orientation = "vertical"
+                        invert
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value= {this.props.fader[this.props.faderIndex].delayTime || 0}
+                        onChange={(event: any) => {
+                            this.handleDelay(event)
+                        }}
+                    />
+                </div>
+            </React.Fragment>
         )
     }
 
@@ -334,6 +379,7 @@ class ChanStrip extends React.PureComponent<IChanStripProps & IChanStripInjectPr
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         &nbsp;&nbsp;&nbsp;
                         DELAY
                     </div>
@@ -344,7 +390,6 @@ class ChanStrip extends React.PureComponent<IChanStripProps & IChanStripInjectPr
                         <p className="zero-comp">______</p>
                         <p className="horizontal-space"></p>
                         {this.delay()}
-                        <p className="zero-comp">______</p>
 
                     </div>
                     <hr/>
@@ -379,56 +424,75 @@ class ChanStrip extends React.PureComponent<IChanStripProps & IChanStripInjectPr
     }
 
     render() {
-        return (
-            <div className="chan-strip-body">
-                <div className="header">
-                    {this.props.label || ("FADER " + (this.props.faderIndex + 1))}
-                    <button 
-                            className="close"
-                            onClick={() => this.handleClose()}
-                        >X
-                    </button>
-
-                </div>
-                <div className="header">
-                    {window.location.search.includes('settings=0') ?
-                    null :
+        if (this.props.faderIndex >= 0) {
+            return (
+                <div className="chan-strip-body">
+                    <div className="header">
+                        {this.props.label || ("FADER " + (this.props.faderIndex + 1))}
                         <button 
-                            className="button"
-                            onClick={() => this.handleShowRoutingOptions()}
-                            >CHANNEL ROUTING
+                                className="close"
+                                onClick={() => this.handleClose()}
+                            >X
                         </button>
-                    }
-                    {window.location.search.includes('settings=0') ?
+
+                    </div>
+                    <div className="header">
+                        {window.location.search.includes('settings=0') ?
                         null :
-                        <button 
-                            className="button"
-                            onClick={() => this.handleShowMonitorOptions()}
-                            >MONITOR ROUTING
-                        </button>
+                            <button 
+                                className="button"
+                                onClick={() => this.handleShowRoutingOptions()}
+                                >CHANNEL ROUTING
+                            </button>
+                        }
+                        {window.location.search.includes('settings=0') ?
+                            null :
+                            <button 
+                                className="button"
+                                onClick={() => this.handleShowMonitorOptions()}
+                                >MONITOR ROUTING
+                            </button>
+                        }
+                    </div>
+                    <hr/>
+                    {this.props.offtubeMode ?
+                        this.parameters() 
+                        : null
                     }
                 </div>
-                <hr/>
-                {this.props.offtubeMode ?
-                    this.parameters() 
-                    : null
-                }
-            </div>
-        )
-    }
+            )
+        } else {
+            return (
+                <div className="chan-strip-body">
+                </div>
+            )
+        }
 
+    }
 }
 
 const mapStateToProps = (state: any, props: any): IChanStripInjectProps => {
-    return {
-        label: state.faders[0].fader[props.faderIndex].label,
+    let inject: IChanStripInjectProps = {
+        label: '',
         selectedProtocol: state.settings[0].mixerProtocol,
         numberOfChannelsInType: state.settings[0].numberOfChannelsInType,
         channel: state.channels[0].channel,
         fader: state.faders[0].fader,
-        auxSendIndex: state.faders[0].fader[props.faderIndex].monitor - 1,
+        auxSendIndex: -1,
         offtubeMode: state.settings[0].offtubeMode
     }
+    if (props.faderIndex >= 0) {
+        inject = {
+            label: state.faders[0].fader[props.faderIndex].label,
+            selectedProtocol: state.settings[0].mixerProtocol,
+            numberOfChannelsInType: state.settings[0].numberOfChannelsInType,
+            channel: state.channels[0].channel,
+            fader: state.faders[0].fader,
+            auxSendIndex: state.faders[0].fader[props.faderIndex].monitor - 1,
+            offtubeMode: state.settings[0].offtubeMode
+        }
+    } 
+    return inject
 }
 
 export default connect<any, IChanStripInjectProps>(mapStateToProps)(ChanStrip) as any;
