@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 # BUILD IMAGE
-FROM node:12.16.0-alpine
+FROM node:12.16.0
 WORKDIR /opt/sisyfos-audio-controller
 COPY . .
 RUN yarn install --check-files --frozen-lockfile
