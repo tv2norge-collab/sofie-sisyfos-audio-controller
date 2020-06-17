@@ -16,7 +16,7 @@ import { EmberMixerConnection } from './mixerConnections/EmberMixerConnection'
 import { LawoRubyMixerConnection } from './mixerConnections/LawoRubyConnection'
 import { StuderMixerConnection } from './mixerConnections/StuderMixerConnection'
 import { StuderVistaMixerConnection } from './mixerConnections/StuderVistaMixerConnection'
-import { CasparCGConnection } from './mixerConnections/CasparCGConnection'
+// import { CasparCGConnection } from './mixerConnections/CasparCGConnection'
 import { IChannel } from '../reducers/channelsReducer'
 import { SET_OUTPUT_LEVEL, FADE_ACTIVE } from '../reducers/channelActions'
 import { SET_FADER_LEVEL } from '../reducers/faderActions'
@@ -58,9 +58,10 @@ export class MixerGenericConnection {
                 this.mixerProtocol as IMixerProtocol
             )
         } else if (this.mixerProtocol.protocol === 'CasparCG') {
-            this.mixerConnection = new CasparCGConnection(
-                this.mixerProtocol as ICasparCGMixerGeometry
-            )
+            // this.mixerConnection = new CasparCGConnection(
+            //     this.mixerProtocol as ICasparCGMixerGeometry
+            // )
+            throw new Error('CasparCG not supported in this version')
         } else if (this.mixerProtocol.protocol === 'EMBER') {
             this.mixerConnection = new EmberMixerConnection(
                 this.mixerProtocol as IMixerProtocol
