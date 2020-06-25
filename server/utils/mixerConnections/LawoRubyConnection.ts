@@ -10,6 +10,7 @@ import {
     SET_CHANNEL_DISABLED,
     SET_INPUT_GAIN,
     SET_INPUT_SELECTOR,
+    SHOW_CHANNEL,
 } from '../../reducers/faderActions'
 import { logger } from '../logger'
 import { SET_MIXER_ONLINE } from '../../reducers/settingsActions'
@@ -162,12 +163,17 @@ export class LawoRubyMixerConnection {
                             channel: channelTypeIndex,
                             disabled: false,
                         })
+                        store.dispatch({
+                            type: SHOW_CHANNEL,
+                            channel: channelTypeIndex,
+                            showChannel: true,
+                        })
                     } else {
                         // disable
                         store.dispatch({
-                            type: SET_CHANNEL_DISABLED,
+                            type: SHOW_CHANNEL,
                             channel: channelTypeIndex,
-                            disabled: true,
+                            showChannel: false,
                         })
                         store.dispatch({
                             type: SET_CHANNEL_LABEL,
