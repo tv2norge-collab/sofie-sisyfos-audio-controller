@@ -95,36 +95,37 @@ export class OscMixerConnection {
                 clearTimeout(this.mixerOnlineTimer)
                 logger.verbose('Received OSC message: ' + message.address, {})
 
+                // if (
+                //     this.checkOscCommand(
+                //         message.address,
+                //         this.mixerProtocol.channelTypes[0].fromMixer
+                //             .CHANNEL_VU[0].mixerMessage
+                //     )
+                // ) {
+                //     if (state.settings[0].mixerProtocol.includes('behringer')) {
+                //         behringerXrMeter(message.args)
+                //     } else if (
+                //         state.settings[0].mixerProtocol.includes('midas')
+                //     ) {
+                //         midasMeter(message.args)
+                //     } else {
+                //         let ch = message.address.split('/')[
+                //             this.cmdChannelIndex
+                //         ]
+                //         store.dispatch({
+                //             type: SET_VU_LEVEL,
+                //             channel:
+                //                 state.channels[0].channel[ch - 1].assignedFader,
+                //             level: message.args[0],
+                //         })
+                //         socketServer.emit(SOCKET_SET_VU, {
+                //             faderIndex:
+                //                 state.channels[0].channel[ch - 1].assignedFader,
+                //             level: message.args[0],
+                //         })
+                //     }
+                // } else
                 if (
-                    this.checkOscCommand(
-                        message.address,
-                        this.mixerProtocol.channelTypes[0].fromMixer
-                            .CHANNEL_VU[0].mixerMessage
-                    )
-                ) {
-                    if (state.settings[0].mixerProtocol.includes('behringer')) {
-                        behringerXrMeter(message.args)
-                    } else if (
-                        state.settings[0].mixerProtocol.includes('midas')
-                    ) {
-                        midasMeter(message.args)
-                    } else {
-                        let ch = message.address.split('/')[
-                            this.cmdChannelIndex
-                        ]
-                        store.dispatch({
-                            type: SET_VU_LEVEL,
-                            channel:
-                                state.channels[0].channel[ch - 1].assignedFader,
-                            level: message.args[0],
-                        })
-                        socketServer.emit(SOCKET_SET_VU, {
-                            faderIndex:
-                                state.channels[0].channel[ch - 1].assignedFader,
-                            level: message.args[0],
-                        })
-                    }
-                } else if (
                     this.checkOscCommand(
                         message.address,
                         this.mixerProtocol.channelTypes[0].fromMixer

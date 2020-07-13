@@ -157,11 +157,6 @@ export const BehringerXrMaster: IMixerProtocol = {
                         mixerMessage: '/ch/{channel}/dyn/ratio',
                     },
                 ],
-                DELAY_TIME: [
-                    {
-                        mixerMessage: '/ch/{channel}/delay/time',
-                    },
-                ],
                 LOW: [
                     {
                         mixerMessage: '/ch/{channel}/eq/1/g',
@@ -197,6 +192,58 @@ export const BehringerXrMaster: IMixerProtocol = {
                 CHANNEL_MUTE_OFF: [
                     {
                         mixerMessage: '/ch/{channel}/mix/on',
+                        value: 1,
+                        type: 'f',
+                    },
+                ],
+            },
+        },
+        {
+            channelTypeName: 'AUX',
+            channelTypeColor: '#2f2f00',
+            fromMixer: {
+                CHANNEL_OUT_GAIN: [
+                    {
+                        mixerMessage: '/bus/{channel}/mix/fader',
+                    },
+                ],
+                CHANNEL_VU: [
+                    {
+                        mixerMessage: '/meters/5',
+                    },
+                ],
+                CHANNEL_VU_REDUCTION: [
+                    {
+                        mixerMessage: '/meters/6',
+                    },
+                ],
+                CHANNEL_NAME: [
+                    {
+                        mixerMessage: '/bus/{channel}/config/name',
+                    },
+                ],
+            },
+            toMixer: {
+                CHANNEL_OUT_GAIN: [
+                    {
+                        mixerMessage: '/bus/{channel}/mix/fader',
+                    },
+                ],
+                CHANNEL_NAME: [
+                    {
+                        mixerMessage: '/bus/{channel}/config/name',
+                    },
+                ],
+                CHANNEL_MUTE_ON: [
+                    {
+                        mixerMessage: '/bus/{channel}/mix/on',
+                        value: 0,
+                        type: 'f',
+                    },
+                ],
+                CHANNEL_MUTE_OFF: [
+                    {
+                        mixerMessage: '/bus/{channel}/mix/on',
                         value: 1,
                         type: 'f',
                     },

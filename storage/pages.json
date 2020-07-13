@@ -1,7 +1,7 @@
 [
     {
-        "id": "example",
-        "label": "Custom",
-        "faders": [0, 1, 2, 3, 4]
+        "id": "xr18",
+        "label": "XR18",
+        "faders": [3, 0, 4, 6]
     }
 ]

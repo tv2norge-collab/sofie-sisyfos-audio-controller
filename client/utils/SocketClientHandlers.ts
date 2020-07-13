@@ -108,31 +108,31 @@ export const socketClientHandlers = () => {
                 state: payload.state,
             })
         })
-        .on(SOCKET_SET_ALL_VU, (payload: any) => {
-            payload.vuMeters.forEach((meterLevel: number, index: number) => {
-                window.storeRedux.dispatch({
-                    type: SET_VU_LEVEL,
-                    channel: index,
-                    level: meterLevel,
-                })
-            })
-            payload.vuReductionMeters.forEach(
-                (meterLevel: number, index: number) => {
-                    window.storeRedux.dispatch({
-                        type: SET_VU_REDUCTION_LEVEL,
-                        channel: index,
-                        level: meterLevel,
-                    })
-                }
-            )
-        })
-        .on(SOCKET_SET_VU, (payload: any) => {
-            window.storeRedux.dispatch({
-                type: SET_VU_LEVEL,
-                channel: payload.faderIndex,
-                level: payload.level,
-            })
-        })
+        // .on(SOCKET_SET_ALL_VU, (payload: any) => {
+        //     payload.vuMeters.forEach((meterLevel: number, index: number) => {
+        //         window.storeRedux.dispatch({
+        //             type: SET_VU_LEVEL,
+        //             channel: index,
+        //             level: meterLevel,
+        //         })
+        //     })
+        //     payload.vuReductionMeters.forEach(
+        //         (meterLevel: number, index: number) => {
+        //             window.storeRedux.dispatch({
+        //                 type: SET_VU_REDUCTION_LEVEL,
+        //                 channel: index,
+        //                 level: meterLevel,
+        //             })
+        //         }
+        //     )
+        // })
+        // .on(SOCKET_SET_VU, (payload: any) => {
+        //     window.storeRedux.dispatch({
+        //         type: SET_VU_LEVEL,
+        //         channel: payload.faderIndex,
+        //         level: payload.level,
+        //     })
+        // })
         .on(SOCKET_SET_VU_REDUCTION, (payload: any) => {
             window.storeRedux.dispatch({
                 type: SET_VU_REDUCTION_LEVEL,
