@@ -69,39 +69,6 @@ export class LawoRubyMixerConnection {
             mixerOnline: false,
         })
 
-        const fakeFaders = [
-            { id: 0, label: 'WL 1', hasAmix: true, hasInputSelect: false },
-            { id: 1, label: 'WL 2', hasAmix: true, hasInputSelect: false },
-            { id: 2, label: 'WL 3', hasAmix: true, hasInputSelect: false },
-            { id: 3, label: 'BM 1', hasAmix: false, hasInputSelect: true },
-            { id: 4, label: 'BM 2', hasAmix: false, hasInputSelect: true },
-            { id: 5, label: 'BM 3', hasAmix: false, hasInputSelect: true },
-        ]
-        setTimeout(() => {
-            fakeFaders.forEach((fader) => {
-                // label
-                console.log('label', fader.id, fader.label)
-                store.dispatch({
-                    type: SET_CHANNEL_LABEL,
-                    channel: fader.id,
-                    label: fader.label,
-                })
-                // capabilities
-                store.dispatch({
-                    type: SET_CAPABILITY,
-                    channel: fader.id,
-                    capability: 'hasAMix',
-                    enabled: fader.hasAmix,
-                })
-                store.dispatch({
-                    type: SET_CAPABILITY,
-                    channel: fader.id,
-                    capability: 'hasInputSelector',
-                    enabled: fader.hasInputSelect,
-                })
-            })
-        }, 2000)
-
         this.emberConnection.on('error', (error: any) => {
             if (
                 (error.message + '').match(/econnrefused/i) ||
@@ -359,11 +326,12 @@ export class LawoRubyMixerConnection {
 
         try {
             const node = await this.emberConnection.getElementByPath(command)
+            console.log('set_cap', ch, 'hasInputSel', true)
             store.dispatch({
                 type: SET_CAPABILITY,
-                channel: ch,
+                channel: ch - 1,
                 capability: 'hasInputSelector',
-                enabled: !!node,
+                enabled: true,
             })
             if (node.contents.type !== Model.ElementType.Parameter) {
                 return
@@ -390,9 +358,10 @@ export class LawoRubyMixerConnection {
             })
         } catch (e) {
             if (e.message.match(/could not find node/i)) {
+                console.log('set_cap', ch, 'hasInputSel', false)
                 store.dispatch({
                     type: SET_CAPABILITY,
-                    channel: ch,
+                    channel: ch - 1,
                     capability: 'hasInputSelector',
                     enabled: false,
                 })
@@ -417,11 +386,12 @@ export class LawoRubyMixerConnection {
 
         try {
             const node = await this.emberConnection.getElementByPath(command)
+            console.log('set_cap', ch - 1, 'hasAMix', true)
             store.dispatch({
                 type: SET_CAPABILITY,
-                channel: ch,
+                channel: ch - 1,
                 capability: 'hasAMix',
-                enabled: !!node,
+                enabled: true,
             })
             if (node.contents.type !== Model.ElementType.Parameter) {
                 return
@@ -439,9 +409,10 @@ export class LawoRubyMixerConnection {
             })
         } catch (e) {
             if (e.message.match(/could not find node/i)) {
+                console.log('set_cap', ch - 1, 'hasAMix', false)
                 store.dispatch({
                     type: SET_CAPABILITY,
-                    channel: ch,
+                    channel: ch - 1,
                     capability: 'hasAMix',
                     enabled: false,
                 })

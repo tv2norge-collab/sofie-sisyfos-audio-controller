@@ -72,7 +72,11 @@ export const LawoRuby: IMixerProtocol = {
                     },
                 ],
                 PFL: [emptyMixerMessage()],
-                CHANNEL_AMIX: [emptyMixerMessage()],
+                CHANNEL_AMIX: [
+                    {
+                        mixerMessage: 'Ruby.Sources.{channel}.DSP.AutoMix.On',
+                    },
+                ],
             },
             toMixer: {
                 CHANNEL_INPUT_GAIN: [
@@ -143,7 +147,7 @@ export const LawoRuby: IMixerProtocol = {
                 PFL_OFF: [emptyMixerMessage()],
                 CHANNEL_AMIX: [
                     {
-                        mixerMessage: 'Ruby.Sources.{channel}.DSP.AMix.On',
+                        mixerMessage: 'Ruby.Sources.{channel}.DSP.AutoMix.On',
                     },
                 ],
             },
