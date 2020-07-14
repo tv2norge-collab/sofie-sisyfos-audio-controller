@@ -90,7 +90,7 @@ export class MixerGenericConnection {
     }
 
     getPresetFileExtention(): string {
-        return this.mixerProtocol.presetFileExtension
+        return this.mixerProtocol.presetFileExtension || ''
     }
 
     loadMixerPreset(presetName: string) {
@@ -184,6 +184,19 @@ export class MixerGenericConnection {
                     this.mixerConnection.updateMuteState(
                         channelIndex,
                         state.faders[0].fader[faderIndex].muteOn
+                    )
+                }
+            }
+        )
+    }
+
+    updateAMixState(faderIndex: number) {
+        state.channels[0].channel.map(
+            (channel: IChannel, channelIndex: number) => {
+                if (faderIndex === channel.assignedFader) {
+                    this.mixerConnection.updateAMixState(
+                        channelIndex,
+                        state.faders[0].fader[faderIndex].amixOn
                     )
                 }
             }
