@@ -20,7 +20,7 @@ if (loggerIp) {
         indexPrefix: 'sisyfos',
         clientOpts: { node: 'http://' + loggerIp + ':' + String(loggerPort) },
     }
-    elasticTransport = new Elasticsearch(esTransportOpts), //everything info and above goes to elastic
+    elasticTransport = new Elasticsearch(esTransportOpts) //everything info and above goes to elastic
 }
 
 
