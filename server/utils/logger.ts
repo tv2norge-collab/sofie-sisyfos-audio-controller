@@ -13,14 +13,21 @@ const loggerConsoleLevel =
 console.log('Elastic Ip :', loggerIp)
 console.log('Elastic Port :', loggerPort)
 
-let elasticTransport
+const transports = [
+    new winston.transports.File({
+        filename: 'logfile.log',
+        level: loggerFileLevel,
+    }), //save errors on file
+    new winston.transports.Console({ level: loggerConsoleLevel }), //save errors on file
+]
+
 if (loggerIp) {
     const esTransportOpts = {
         level: loggerLevel,
         indexPrefix: 'sisyfos',
         clientOpts: { node: 'http://' + loggerIp + ':' + String(loggerPort) },
     }
-    elasticTransport = new Elasticsearch(esTransportOpts) //everything info and above goes to elastic
+    transports.push(new Elasticsearch(esTransportOpts)) //everything info and above goes to elastic
 }
 
 
@@ -28,14 +35,8 @@ if (loggerIp) {
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
-    transports: [
-        new winston.transports.File({
-            filename: 'logfile.log',
-            level: loggerFileLevel,
-        }), //save errors on file
-        new winston.transports.Console({ level: loggerConsoleLevel }), //save errors on file
-        elasticTransport
-    ],
+    transports
+
 })
 
 if (process.env.NODE_ENV !== 'production') {
