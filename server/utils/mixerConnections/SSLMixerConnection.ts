@@ -104,13 +104,15 @@ export class SSLMixerConnection {
                         // FADERLEVEL COMMAND:
                         try {
                             let commandHex = buffer.toString('hex')
-                            let channel = buffer[6]
+                            let channelIndex = buffer[6]
                             let value = buffer.readUInt16BE(7) / 1024
 
                             let assignedFaderIndex =
-                                state.channels[0].channel[channel].assignedFader
+                                state.channels[0].channel[channelIndex]
+                                    .assignedFader
                             if (
-                                !state.channels[0].channel[channel].fadeActive
+                                !state.channels[0].channel[channelIndex]
+                                    .fadeActive
                             ) {
                                 if (
                                     value >
@@ -119,43 +121,53 @@ export class SSLMixerConnection {
                                             state.settings[0].autoResetLevel) /
                                             100
                                 ) {
-                                    store.dispatch({
-                                        type: SET_FADER_LEVEL,
-                                        channel: assignedFaderIndex,
-                                        level: value,
-                                    })
                                     if (
-                                        !state.faders[0].fader[
-                                            assignedFaderIndex
-                                        ].pgmOn
+                                        state.channels[0].channel[channelIndex]
+                                            .outputLevel !== value
                                     ) {
                                         store.dispatch({
-                                            type: TOGGLE_PGM,
+                                            type: SET_FADER_LEVEL,
                                             channel: assignedFaderIndex,
+                                            level: value,
                                         })
-                                    }
+                                        if (
+                                            !state.faders[0].fader[
+                                                assignedFaderIndex
+                                            ].pgmOn
+                                        ) {
+                                            store.dispatch({
+                                                type: TOGGLE_PGM,
+                                                channel: assignedFaderIndex,
+                                            })
+                                        }
 
-                                    if (remoteConnections) {
-                                        remoteConnections.updateRemoteFaderState(
-                                            assignedFaderIndex,
-                                            value
-                                        )
-                                    }
-                                    if (
-                                        state.faders[0].fader[
-                                            assignedFaderIndex
-                                        ].pgmOn
-                                    ) {
-                                        state.channels[0].channel.map(
-                                            (channel: any, index: number) => {
-                                                if (
-                                                    channel.assignedFader ===
-                                                    assignedFaderIndex
-                                                ) {
-                                                    this.updateOutLevel(index)
+                                        if (remoteConnections) {
+                                            remoteConnections.updateRemoteFaderState(
+                                                assignedFaderIndex,
+                                                value
+                                            )
+                                        }
+                                        if (
+                                            state.faders[0].fader[
+                                                assignedFaderIndex
+                                            ].pgmOn
+                                        ) {
+                                            state.channels[0].channel.map(
+                                                (
+                                                    channel: any,
+                                                    index: number
+                                                ) => {
+                                                    if (
+                                                        channel.assignedFader ===
+                                                        assignedFaderIndex
+                                                    ) {
+                                                        this.updateOutLevel(
+                                                            index
+                                                        )
+                                                    }
                                                 }
-                                            }
-                                        )
+                                            )
+                                        }
                                     }
                                 } else if (
                                     state.faders[0].fader[assignedFaderIndex]
