@@ -15,6 +15,8 @@ import {
     getSnapShotList,
     getCcgSettingsList,
     setCcgDefault,
+    getMixerPresetList,
+    getCustomPages,
 } from './utils/SettingsStorage'
 import {
     SOCKET_TOGGLE_PGM,
@@ -23,6 +25,7 @@ import {
     SOCKET_TOGGLE_PFL,
     SOCKET_TOGGLE_MUTE,
     SOCKET_SET_FADERLEVEL,
+    SOCKET_SET_INPUT_GAIN,
     SOCKET_SAVE_SETTINGS,
     SOCKET_GET_SNAPSHOT_LIST,
     SOCKET_RETURN_SNAPSHOT_LIST,
@@ -50,6 +53,14 @@ import {
     SOCKET_SAVE_CCG_FILE,
     SOCKET_SET_DELAY_TIME,
     SOCKET_SHOW_IN_MINI_MONITOR,
+    SOCKET_GET_MIXER_PRESET_LIST,
+    SOCKET_RETURN_MIXER_PRESET_LIST,
+    SOCKET_LOAD_MIXER_PRESET,
+    SOCKET_SET_INPUT_SELECTOR,
+    SOCKET_GET_PAGES_LIST,
+    SOCKET_RETURN_PAGES_LIST,
+    SOCKET_TOGGLE_AMIX,
+    SOCKET_TOGGLE_ALL_MANUAL,
 } from './constants/SOCKET_IO_DISPATCHERS'
 import {
     TOGGLE_PGM,
@@ -69,6 +80,10 @@ import {
     SET_FADER_LO_MID,
     SET_FADER_DELAY_TIME,
     SHOW_IN_MINI_MONITOR,
+    SET_INPUT_GAIN,
+    SET_INPUT_SELECTOR,
+    TOGGLE_AMIX,
+    TOGGLE_ALL_MANUAL,
 } from './reducers/faderActions'
 import { SET_FADER_LEVEL } from './reducers/faderActions'
 import { SET_ASSIGNED_FADER, SET_AUX_LEVEL } from './reducers/channelActions'
@@ -162,13 +177,31 @@ export class MainThreadHandlers {
                 )
             })
             .on(SOCKET_GET_CCG_LIST, () => {
-                logger.info('Get snapshot list', {})
+                logger.info('Get CCG settings list', {})
                 socketServer.emit(SOCKET_RETURN_CCG_LIST, getCcgSettingsList())
+            })
+            .on(SOCKET_GET_MIXER_PRESET_LIST, () => {
+                logger.info('Get Preset list', {})
+                socketServer.emit(
+                    SOCKET_RETURN_MIXER_PRESET_LIST,
+                    getMixerPresetList(
+                        mixerGenericConnection.getPresetFileExtention()
+                    )
+                )
             })
             .on(SOCKET_SAVE_CCG_FILE, (payload: any) => {
                 logger.info('Set default CCG File :' + String(payload), {})
                 setCcgDefault(payload)
                 this.updateFullClientStore()
+            })
+            .on(SOCKET_LOAD_MIXER_PRESET, (payload: any) => {
+                logger.info('Set Mixer Preset :' + String(payload), {})
+                mixerGenericConnection.loadMixerPreset(payload)
+                this.updateFullClientStore()
+            })
+            .on(SOCKET_GET_PAGES_LIST, () => {
+                logger.info('Get custom pages list', {})
+                socketServer.emit(SOCKET_RETURN_PAGES_LIST, getCustomPages())
             })
             .on(SOCKET_SAVE_SETTINGS, (payload: any) => {
                 logger.info('Save settings :' + String(payload), {})
@@ -360,6 +393,14 @@ export class MainThreadHandlers {
                 mixerGenericConnection.updateMuteState(faderIndex)
                 this.updatePartialStore(faderIndex)
             })
+            .on(SOCKET_TOGGLE_AMIX, (faderIndex: any) => {
+                store.dispatch({
+                    type: TOGGLE_AMIX,
+                    channel: faderIndex,
+                })
+                mixerGenericConnection.updateAMixState(faderIndex)
+                this.updatePartialStore(faderIndex)
+            })
             .on(SOCKET_TOGGLE_IGNORE, (faderIndex: any) => {
                 store.dispatch({
                     type: IGNORE_AUTOMATION,
@@ -379,9 +420,47 @@ export class MainThreadHandlers {
                     channel: payload.faderIndex,
                     level: parseFloat(payload.level),
                 })
-                mixerGenericConnection.updateOutLevel(payload.faderIndex)
+                mixerGenericConnection.updateOutLevel(payload.faderIndex, 0)
                 mixerGenericConnection.updateNextAux(payload.faderIndex)
                 this.updatePartialStore(payload.faderIndex)
+            })
+            .on(SOCKET_SET_INPUT_GAIN, (payload: any) => {
+                logger.verbose(
+                    'Set fInput Gain Channel : ' +
+                        String(payload.faderIndex + 1) +
+                        '  Level : ' +
+                        String(payload.level)
+                )
+                store.dispatch({
+                    type: SET_INPUT_GAIN,
+                    channel: payload.faderIndex,
+                    level: parseFloat(payload.level),
+                })
+                mixerGenericConnection.updateInputGain(payload.faderIndex)
+                this.updatePartialStore(payload.faderIndex)
+            })
+            .on(SOCKET_SET_INPUT_SELECTOR, (payload: any) => {
+                logger.verbose(
+                    'Set Input selector : ' +
+                        String(payload.faderIndex + 1) +
+                        '  Selected : ' +
+                        String(payload.selected)
+                )
+                console.log(payload)
+                store.dispatch({
+                    type: SET_INPUT_SELECTOR,
+                    channel: payload.faderIndex,
+                    selected: parseFloat(payload.selected),
+                })
+                mixerGenericConnection.updateInputSelector(payload.faderIndex)
+                this.updatePartialStore(payload.faderIndex)
+            })
+            .on(SOCKET_TOGGLE_ALL_MANUAL, () => {
+                logger.verbose('Toggle manual mode for all')
+                store.dispatch({
+                    type: TOGGLE_ALL_MANUAL,
+                })
+                this.updateFullClientStore()
             })
     }
 }

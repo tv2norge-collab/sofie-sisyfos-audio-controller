@@ -11,17 +11,29 @@ import indexReducer from '../server/reducers/indexReducer'
 import {
     SOCKET_GET_SNAPSHOT_LIST,
     SOCKET_GET_CCG_LIST,
+    SOCKET_GET_MIXER_PRESET_LIST,
+    SOCKET_GET_PAGES_LIST,
 } from '../server/constants/SOCKET_IO_DISPATCHERS'
+
+import { I18nextProvider } from 'react-i18next'
+import i18n from './i18n'
+import { IMixerProtocol } from '../server/constants/MixerProtocolInterface'
 
 declare global {
     interface Window {
         storeRedux: any
-        mixerProtocol: any
+        mixerProtocol: IMixerProtocol
         mixerProtocolPresets: any
         mixerProtocolList: any
         socketIoClient: any
         snapshotFileList: string[]
         ccgFileList: string[]
+        mixerPresetList: string[]
+        customPagesList: Array<{
+            id: string
+            label: string
+            faders: Array<number>
+        }>
     }
 }
 
@@ -33,6 +45,8 @@ window.storeRedux = storeRedux
 window.socketIoClient = io()
 window.socketIoClient.emit(SOCKET_GET_SNAPSHOT_LIST)
 window.socketIoClient.emit(SOCKET_GET_CCG_LIST)
+window.socketIoClient.emit(SOCKET_GET_MIXER_PRESET_LIST)
+window.socketIoClient.emit(SOCKET_GET_PAGES_LIST)
 
 console.log('Setting up SocketIO connection')
 socketClientHandlers()
@@ -42,7 +56,9 @@ window.socketIoClient.emit('get-mixerprotocol', 'get selected mixerprotocol')
 
 ReactDom.render(
     <ReduxProvider store={storeRedux}>
-        <App />
+        <I18nextProvider i18n={i18n}>
+            <App />
+        </I18nextProvider>
     </ReduxProvider>,
     document.getElementById('root')
 )

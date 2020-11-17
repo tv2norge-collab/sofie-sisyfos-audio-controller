@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as ClassNames from 'classnames'
 import { connect } from 'react-redux'
 import VuMeter from './VuMeter'
-import { Store } from 'redux'
+import { Store, compose } from 'redux'
 import Nouislider from 'nouislider-react'
 import '../assets/css/NoUiSlider.css'
 
@@ -17,13 +17,16 @@ import {
     SOCKET_TOGGLE_MUTE,
     SOCKET_SET_FADERLEVEL,
     SOCKET_TOGGLE_IGNORE,
+    SOCKET_TOGGLE_AMIX,
 } from '../../server/constants/SOCKET_IO_DISPATCHERS'
 import { IFader } from '../../server/reducers/fadersReducer'
 import { IChannels } from '../../server/reducers/channelsReducer'
 import { ISettings } from '../../server/reducers/settingsReducer'
 import { TOGGLE_SHOW_CHAN_STRIP } from '../../server/reducers/settingsActions'
+import { withTranslation } from 'react-i18next'
 
 interface IChannelInjectProps {
+    t: any
     channels: IChannels
     fader: IFader
     settings: ISettings
@@ -35,10 +38,16 @@ interface IChannelProps {
     faderIndex: number
 }
 
+function XOR(a: any, b: any): boolean {
+    return (a && !b) || (b && !a)
+}
+
 class Channel extends React.Component<
     IChannelProps & IChannelInjectProps & Store
 > {
     faderIndex: number
+
+    private _domRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     constructor(props: any) {
         super(props)
@@ -47,6 +56,7 @@ class Channel extends React.Component<
 
     public shouldComponentUpdate(nextProps: IChannelInjectProps) {
         return (
+            nextProps.channelTypeIndex !== this.props.channelTypeIndex ||
             nextProps.fader.pgmOn != this.props.fader.pgmOn ||
             nextProps.fader.voOn != this.props.fader.voOn ||
             nextProps.fader.pstOn != this.props.fader.pstOn ||
@@ -62,8 +72,21 @@ class Channel extends React.Component<
             nextProps.settings.showSnaps != this.props.settings.showSnaps ||
             nextProps.settings.showPfl != this.props.settings.showPfl ||
             nextProps.settings.showChanStrip !=
-                this.props.settings.showChanStrip
+                this.props.settings.showChanStrip ||
+            nextProps.fader.amixOn != this.props.fader.amixOn ||
+            XOR(nextProps.fader.capabilities, this.props.fader.capabilities) ||
+            XOR(
+                nextProps.fader.capabilities?.hasAMix,
+                this.props.fader.capabilities?.hasAMix
+            )
         )
+    }
+
+    componentDidUpdate() {
+        // scroll into view if we are now the chan strip
+        if (this.props.settings.showChanStrip === this.faderIndex) {
+            this._domRef.current?.scrollIntoView()
+        }
     }
 
     handlePgm() {
@@ -80,10 +103,21 @@ class Channel extends React.Component<
 
     handlePfl() {
         window.socketIoClient.emit(SOCKET_TOGGLE_PFL, this.faderIndex)
+        if (
+            this.props.settings.chanStripFollowsPFL &&
+            !this.props.fader.pflOn &&
+            this.props.settings.showChanStrip !== this.faderIndex
+        ) {
+            this.handleShowChanStrip()
+        }
     }
 
     handleMute() {
         window.socketIoClient.emit(SOCKET_TOGGLE_MUTE, this.faderIndex)
+    }
+
+    handleAmix() {
+        window.socketIoClient.emit(SOCKET_TOGGLE_AMIX, this.faderIndex)
     }
 
     handleIgnore() {
@@ -164,7 +198,7 @@ class Channel extends React.Component<
                     this.handleVo()
                 }}
             >
-                VO
+                {this.props.t('VO')}
             </button>
         )
     }
@@ -179,21 +213,27 @@ class Channel extends React.Component<
                 onClick={(event) => {
                     this.handlePst()
                 }}
+                onTouchEnd={(event) => {
+                    event.preventDefault()
+                    this.handlePst()
+                }}
             >
                 {this.props.settings.automationMode ? (
-                    <React.Fragment>CUE NEXT</React.Fragment>
+                    <React.Fragment>{this.props.t('CUE NEXT')}</React.Fragment>
                 ) : (
-                    <React.Fragment>PST</React.Fragment>
+                    <React.Fragment>{this.props.t('PST')}</React.Fragment>
                 )}
             </button>
         )
     }
 
     chanStripButton = () => {
+        const isActive = this.props.settings.showChanStrip === this.faderIndex
         return (
             <button
                 className={ClassNames('channel-strip-button', {
                     on: this.props.settings.showChanStrip,
+                    active: isActive,
                 })}
                 onClick={(event) => {
                     this.handleShowChanStrip()
@@ -215,8 +255,12 @@ class Channel extends React.Component<
                 onClick={(event) => {
                     this.handlePfl()
                 }}
+                onTouchEnd={(event) => {
+                    event.preventDefault()
+                    this.handlePfl()
+                }}
             >
-                PFL
+                {this.props.t('PFL')}
             </button>
         )
     }
@@ -243,21 +287,48 @@ class Channel extends React.Component<
 
     muteButton = () => {
         return (
-            <button
-                className={ClassNames('channel-mute-button', {
-                    on: this.props.fader.muteOn,
-                })}
-                onClick={(event) => {
-                    event.preventDefault()
-                    this.handleMute()
-                }}
-                onTouchEnd={(event) => {
-                    event.preventDefault()
-                    this.handleMute()
-                }}
-            >
-                MUTE
-            </button>
+            window.mixerProtocol.channelTypes[0].toMixer.CHANNEL_MUTE_ON && (
+                <button
+                    className={ClassNames('channel-mute-button', {
+                        on: this.props.fader.muteOn,
+                    })}
+                    onClick={(event) => {
+                        event.preventDefault()
+                        this.handleMute()
+                    }}
+                    onTouchEnd={(event) => {
+                        event.preventDefault()
+                        this.handleMute()
+                    }}
+                >
+                    MUTE
+                </button>
+            )
+        )
+    }
+
+    amixButton = () => {
+        return (
+            window.mixerProtocol.channelTypes[0].toMixer.CHANNEL_AMIX && (
+                <button
+                    className={ClassNames('channel-amix-button', {
+                        on: this.props.fader.amixOn,
+                        disabled:
+                            this.props.fader.capabilities &&
+                            !this.props.fader.capabilities.hasAMix,
+                    })}
+                    onClick={(event) => {
+                        event.preventDefault()
+                        this.handleAmix()
+                    }}
+                    onTouchEnd={(event) => {
+                        event.preventDefault()
+                        this.handleAmix()
+                    }}
+                >
+                    AMix
+                </button>
+            )
         )
     }
 
@@ -270,10 +341,59 @@ class Channel extends React.Component<
                     'vo-on': this.props.fader.voOn,
                     'mute-on': this.props.fader.muteOn,
                     'ignore-on': this.props.fader.ignoreAutomation,
+                    'not-found': this.props.fader.disabled,
                 })}
+                ref={this._domRef}
+            >
+                <div className="channel-props">
+                    {this.ignoreButton()}
+                    {/* TODO - amix and mute cannot be shown at the same time due to css. Depends on protocol right now. */}
+                    {this.muteButton()}
+                    {this.amixButton()}
+                </div>
+                <div className="fader">
+                    {this.fader()}
+                    {window.mixerProtocol.channelTypes[0].fromMixer
+                        .CHANNEL_VU && <VuMeter faderIndex={this.faderIndex} />}
+                </div>
+                <div className="out-control">
+                    {this.pgmButton()}
+                    {this.props.settings.automationMode ? (
+                        <React.Fragment>
+                            {this.voButton()}
+                            <br />
+                        </React.Fragment>
+                    ) : null}
+                </div>
+                <div className="channel-control">
+                    {this.chanStripButton()}
+                    {!this.props.settings.showPfl ? (
+                        <React.Fragment>{this.pstButton()}</React.Fragment>
+                    ) : null}
+                    {this.props.settings.showPfl ? (
+                        <React.Fragment>{this.pflButton()}</React.Fragment>
+                    ) : null}
+                </div>
+            </div>
+        )
+    }
+
+    DONOTUSE_render() {
+        return this.props.fader.showChannel === false ? null : (
+            <div
+                className={ClassNames('channel-body', {
+                    'with-pfl': this.props.settings.showPfl,
+                    'pgm-on': this.props.fader.pgmOn,
+                    'vo-on': this.props.fader.voOn,
+                    'mute-on': this.props.fader.muteOn,
+                    'ignore-on': this.props.fader.ignoreAutomation,
+                    'not-found': this.props.fader.disabled,
+                })}
+                ref={this._domRef}
             >
                 {this.ignoreButton()}
                 {this.muteButton()}
+                {/* {this.props.fader.faderLevel} */}
                 <br />
                 <h4 className="channel-zero-indicator">_____</h4>
                 {this.fader()}
@@ -310,6 +430,7 @@ class Channel extends React.Component<
 
 const mapStateToProps = (state: any, props: any): IChannelInjectProps => {
     return {
+        t: props.t,
         channels: state.channels[0].channel,
         fader: state.faders[0].fader[props.faderIndex],
         settings: state.settings[0],
@@ -319,6 +440,7 @@ const mapStateToProps = (state: any, props: any): IChannelInjectProps => {
     }
 }
 
-export default connect<any, IChannelInjectProps, any>(mapStateToProps)(
-    Channel
-) as any
+export default compose(
+    connect<any, IChannelInjectProps, any>(mapStateToProps),
+    withTranslation()
+)(Channel) as any

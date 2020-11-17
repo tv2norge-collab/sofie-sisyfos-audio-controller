@@ -2,6 +2,83 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.6.1](https://github.com/olzzon/sisyfos-audio-controller/compare/v3.6.0...v3.6.1) (2020-08-13)
+
+### Bug Fixes
+
+-   OSC (Behringer - Midas) protocol use internal 0-1 level when sending level to mix parameters ([4998ae1](https://github.com/olzzon/sisyfos-audio-controller/commit/4998ae1101897a321ab325d640f7662b6eed8ff0))
+
+## [3.6.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v3.5.0...v3.6.0) (2020-08-12)
+
+### Features
+
+-   add CHANNEL_INPUT_GAIN in mixer protocols ([729dcb5](https://github.com/olzzon/sisyfos-audio-controller/commit/729dcb5428a58fd5ece790d8fa221c39cdab2160))
+-   Behringer XR protocol - remove unused variables. ([3981afc](https://github.com/olzzon/sisyfos-audio-controller/commit/3981afc21b8a751953719cbde576abfd7cd68976))
+-   Chan Strip show/hide only Comp-Delay-Eq parts that are in selected mixerprotocol ([167318e](https://github.com/olzzon/sisyfos-audio-controller/commit/167318ec04680669bc97ff97b94ff8fc36aa3c65))
+-   channel strip follows PFL ([3f3b867](https://github.com/olzzon/sisyfos-audio-controller/commit/3f3b8679fd14a14e4b25397f3b0cb05dd28d8d80))
+-   disabled faders (from protocol) ([e02410b](https://github.com/olzzon/sisyfos-audio-controller/commit/e02410b1e190bbbbbd51732ec69d68acc5dd1d86))
+-   feedback for input sel, gain and pages ([da57f6a](https://github.com/olzzon/sisyfos-audio-controller/commit/da57f6ac1b2ff27eda47cae6d6c73773139b3f47))
+-   flexible UI layout, AutoMix, Capabilities (and more) ([c210c0e](https://github.com/olzzon/sisyfos-audio-controller/commit/c210c0e80cc5214f057f3657b0a185277ccd80a3))
+-   input gain and selector - input gain implemented - selector GUI prepared ([1e8b550](https://github.com/olzzon/sisyfos-audio-controller/commit/1e8b55083b7366737215f6bb6de78b49e7afb0b1))
+-   input selector - added CHANNEL_INPUT_SELECTOR in mixer protocol ([04e6c61](https://github.com/olzzon/sisyfos-audio-controller/commit/04e6c61505bf711c4306df835c8f6bf333fe8e60))
+-   pages ([8c5b212](https://github.com/olzzon/sisyfos-audio-controller/commit/8c5b2129527ccccc030ab973ca21634fa4c326cc))
+-   **Lawo Ruby:** channel to source mappings ([0fde375](https://github.com/olzzon/sisyfos-audio-controller/commit/0fde375e9737af2fd258eb15246f8a7264fe3f84))
+-   input selector - implemented ([419c1be](https://github.com/olzzon/sisyfos-audio-controller/commit/419c1becd1a95e797d779b2862e1e0eff37cb0c7))
+-   Inputselector buttons and Gain is only visible when added to mixerprotocol. ([7d69ef7](https://github.com/olzzon/sisyfos-audio-controller/commit/7d69ef76e465904e053b476bc47866729a6ca95f))
+-   lawo ruby gain + input select ([d5b552c](https://github.com/olzzon/sisyfos-audio-controller/commit/d5b552c277a64ac2921e6a27fefa59526e385ddb))
+-   Midas/Behringer X32 - mixer protocol cleanup - removed unused variables ([71509ac](https://github.com/olzzon/sisyfos-audio-controller/commit/71509ac8d962a5104857ce3495ee992a65cb05fe))
+
+### Bug Fixes
+
+-   align Channels selector and Delay buttons ([252face](https://github.com/olzzon/sisyfos-audio-controller/commit/252face617b584be1087900b271beb3416a29b74))
+-   correct mutation type ([0de941d](https://github.com/olzzon/sisyfos-audio-controller/commit/0de941d4b043ce875e561687cee2b75544091584))
+-   crash when .presetFileExtension was not present in mixerprotocol ([616c954](https://github.com/olzzon/sisyfos-audio-controller/commit/616c954fca511ca06da9fe33c45645739cb0ae43))
+-   css - "Load mixer preset" was not centered ([0dac1e7](https://github.com/olzzon/sisyfos-audio-controller/commit/0dac1e77b7443491eca80c0a4d514977748d3c6a))
+-   initial fixes for working Lawo Ruby + upgrade emberplus-conn ([8c556a5](https://github.com/olzzon/sisyfos-audio-controller/commit/8c556a547a963d8efdeba97f25cb93701836106c))
+-   lawo ruby subscriptions ([4b3f4a6](https://github.com/olzzon/sisyfos-audio-controller/commit/4b3f4a65dcc04e5318006a97d936add0e82db505))
+-   SSL - don´t update received fader level if value is identical to current value (when assigning more than 1 channel pr fader in Sisyfos) ([6ba6078](https://github.com/olzzon/sisyfos-audio-controller/commit/6ba6078366be56da66841a9554084d81b15291b9))
+-   **Lawo Ruby:** misc fixes ([b1744da](https://github.com/olzzon/sisyfos-audio-controller/commit/b1744daa057a7bddb22f1bd6ea7aad4c4583f23a))
+-   wrong constant for store dispath (used SOCKET instead of reducer) ([0cdb455](https://github.com/olzzon/sisyfos-audio-controller/commit/0cdb45556079c0b86a4cf6c366681b370b20f74a))
+-   X32 - mixer was offline when receiving data for a channel with a higher assigned fader than total amount of faders ([0a38821](https://github.com/olzzon/sisyfos-audio-controller/commit/0a388216e2b19b6619591216444ce0d60428a7f1))
+
+## [3.5.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v3.4.0...v3.5.0) (2020-06-08)
+
+### Features
+
+-   List mixer presets in storage prepared ([67b6435](https://github.com/olzzon/sisyfos-audio-controller/commit/67b643522ab7cec9635b7e2566ca7123115b1239))
+-   load mixer preset - Load scene from X32 ([7f1eb77](https://github.com/olzzon/sisyfos-audio-controller/commit/7f1eb775bcfe00e554e1b5417ece977fd6bb26d5))
+-   load mixer preset - prepared protocols with loadPresetCommand.mixerMessage ([4ffbf3c](https://github.com/olzzon/sisyfos-audio-controller/commit/4ffbf3cb7e53bbf22fc45018def9606fc2027fa1))
+-   load mixer preset - update examples ([53581c3](https://github.com/olzzon/sisyfos-audio-controller/commit/53581c3f3559ec30a53191fa2996648db5a73e90))
+-   load mixer preset - x32 example files added ([260a71d](https://github.com/olzzon/sisyfos-audio-controller/commit/260a71d7085b1f7bc6e75d8e49e1988c193ba821))
+-   Localization - simple localization for Sisyfos ([85a3442](https://github.com/olzzon/sisyfos-audio-controller/commit/85a344214e85dac059e7b2571ec2d66e587afc6f))
+-   localization add nb and sv ([7431031](https://github.com/olzzon/sisyfos-audio-controller/commit/74310318942d436bbb0aa508ed7bba741951fdb4))
+-   mixer-preset-loading working Midas/Behringer X32 preset loading ([a8fe1a9](https://github.com/olzzon/sisyfos-audio-controller/commit/a8fe1a97fe842716adc403bcffd9a9c0f92dbdc0))
+
+### Bug Fixes
+
+-   compressor area in chan strip was scrollable in css. ([55bc40a](https://github.com/olzzon/sisyfos-audio-controller/commit/55bc40af3f8e597217a035f64c923cdad15cbd42))
+-   missing declaration in protocol ([74524c4](https://github.com/olzzon/sisyfos-audio-controller/commit/74524c4b241eebd9385d7f5be3bb3dc5332f1fec))
+-   mixer-preset compare both sides as uppercase ([0617fec](https://github.com/olzzon/sisyfos-audio-controller/commit/0617fec84567bca0e7d71e72dfcd89fb568e7af3))
+-   mixer-preset-list check files as uppercase ([ac97d70](https://github.com/olzzon/sisyfos-audio-controller/commit/ac97d70647b54bc6eeac06af83ee9a3fe2126f65))
+
+## [3.4.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v3.3.0...v3.4.0) (2020-06-01)
+
+### Features
+
+-   **casparcg:** adds CasparCG monitoring support for NEXT/PST ([d072336](https://github.com/olzzon/sisyfos-audio-controller/commit/d0723367275b31cc54599068b4eb70e00a6e0a75))
+
+### Bug Fixes
+
+-   metering should come from the first assigned channel (until multi channel metering is available) ([2c01de9](https://github.com/olzzon/sisyfos-audio-controller/commit/2c01de9a7fbd70cbd6bc57a0d9d170b1efccfe92))
+-   Midas - Behringer X32 - emit all meter values in one blob ([e5fd8a9](https://github.com/olzzon/sisyfos-audio-controller/commit/e5fd8a97b5e0b623f1c8bf7ae2a1465fe7069538))
+-   midas - ensure a number when creating new array ([f63003a](https://github.com/olzzon/sisyfos-audio-controller/commit/f63003a78b062a0d437db44ad8d520b5fae91d5d))
+-   midas - wrong logic in checking for unavailble faders ([eb3a178](https://github.com/olzzon/sisyfos-audio-controller/commit/eb3a17850192b44c80133490b2ea755fbb90cb1a))
+-   midas - x32 metering was pr channel not pr assignedFader ([47b54d2](https://github.com/olzzon/sisyfos-audio-controller/commit/47b54d20ada009d2094f543a6f6b1e9715bffe6d))
+-   midas optimize - do not assigned meters for more than number of faders (no matter of assignment) ([711d240](https://github.com/olzzon/sisyfos-audio-controller/commit/711d24070bce22b2c3436ed1c679420545279650))
+-   Reduction meter showed reverse value (max reduction when none, and min when max) ([a1aa3eb](https://github.com/olzzon/sisyfos-audio-controller/commit/a1aa3ebbee84759afaac0e1a7553f5f7debf59b7))
+-   rename Gain red. to "reducition" for fint size/space on Windows machine. ([2601cf7](https://github.com/olzzon/sisyfos-audio-controller/commit/2601cf75a66fdfa3d74f0a26766aa5d31cf6f4a8))
+-   smaller top margin on Reduction meter ([ebf3cc3](https://github.com/olzzon/sisyfos-audio-controller/commit/ebf3cc37a89a473b6b729d849c5040d190361ca1))
+
 ## [3.3.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v3.2.0...v3.3.0) (2020-05-11)
 
 ### Features

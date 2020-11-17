@@ -567,6 +567,13 @@ export class StuderVistaMixerConnection {
         )
     }
 
+    updateInputGain(channelIndex: number, level: number) {
+        return true
+    }
+    updateInputSelector(channelIndex: number, inputSelected: number) {
+        return true
+    }
+
     updateThreshold(channelIndex: number, level: number) {
         return true
     }
@@ -614,6 +621,8 @@ export class StuderVistaMixerConnection {
     updateChannelName(channelIndex: number) {
         return
     }
+
+    loadMixerPreset(presetName: string) {}
 
     injectCommand(command: string[]) {
         return true

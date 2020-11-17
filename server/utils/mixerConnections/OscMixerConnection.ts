@@ -1,5 +1,8 @@
 //Node Modules:
 const osc = require('osc')
+const fs = require('fs')
+const path = require('path')
+
 import { store, state } from '../../reducers/store'
 import { remoteConnections } from '../../mainClasses'
 import { socketServer } from '../../expressHandler'
@@ -37,6 +40,7 @@ import {
     SOCKET_SET_MIXER_ONLINE,
 } from '../../constants/SOCKET_IO_DISPATCHERS'
 import { logger } from '../logger'
+import { valueContainerCSS } from 'react-select/src/components/containers'
 
 export class OscMixerConnection {
     mixerProtocol: IMixerProtocol
@@ -162,10 +166,10 @@ export class OscMixerConnection {
 
                     if (!state.channels[0].channel[ch - 1].fadeActive) {
                         if (
-                            message.args[0] >
-                            this.mixerProtocol.fader.min +
-                                (this.mixerProtocol.fader.max *
-                                    state.settings[0].autoResetLevel) /
+                            message.args[0] > this.mixerProtocol.fader.min ||
+                            0 +
+                                (this.mixerProtocol.fader.max ||
+                                    1 * state.settings[0].autoResetLevel) /
                                     100
                         ) {
                             store.dispatch({
@@ -187,7 +191,8 @@ export class OscMixerConnection {
                             ) {
                                 if (
                                     message.args[0] >
-                                    this.mixerProtocol.fader.min
+                                        this.mixerProtocol.fader.min ||
+                                    0
                                 ) {
                                     store.dispatch({
                                         type: TOGGLE_PGM,
@@ -334,7 +339,8 @@ export class OscMixerConnection {
                     let ratio = this.mixerProtocol.channelTypes[0].fromMixer
                         .RATIO[0]
                     let level =
-                        message.args[0] / (ratio.max - ratio.min + ratio.min)
+                        message.args[0] /
+                        (ratio.max || 1 - ratio.min || 0 + ratio.min || 0)
                     store.dispatch({
                         type: SET_FADER_RATIO,
                         channel:
@@ -355,7 +361,8 @@ export class OscMixerConnection {
                     let delay = this.mixerProtocol.channelTypes[0].fromMixer
                         .DELAY_TIME[0]
                     let delayTime =
-                        message.args[0] / (delay.max - delay.min + delay.min)
+                        message.args[0] /
+                        (delay.max || 1 - delay.min || 0 + delay.min || 0)
                     store.dispatch({
                         type: SET_FADER_DELAY_TIME,
                         channel:
@@ -441,10 +448,8 @@ export class OscMixerConnection {
                 }
             })
             .on('error', (error: any) => {
-                this.mixerOnline(false)
                 global.mainThreadHandler.updateFullClientStore()
                 logger.error('Error : ' + String(error), {})
-                logger.info('Lost OSC connection', {})
             })
             .on('disconnect', () => {
                 this.mixerOnline(false)
@@ -466,13 +471,14 @@ export class OscMixerConnection {
     }
 
     initialCommands() {
+        // To prevent network overload, timers will delay the requests.
         this.mixerProtocol.initializeCommands.forEach(
             (item, itemIndex: number) => {
                 setTimeout(() => {
                     if (item.mixerMessage.includes('{channel}')) {
-                        if (item.type === 'aux') {
+                        if (item.type !== undefined && item.type === 'aux') {
                             state.channels[0].channel.forEach(
-                                (channel: any, index: number) => {
+                                (channel: any) => {
                                     channel.auxLevel.forEach(
                                         (auxLevel: any, auxIndex: number) => {
                                             if (channel.assignedFader >= 0) {
@@ -509,12 +515,9 @@ export class OscMixerConnection {
                             )
                         }
                     } else {
-                        this.sendOutMessage(
-                            item.mixerMessage,
-                            1,
-                            item.value,
-                            item.type
-                        )
+                        let value = item.value || 0
+                        let type = item.type || 'i'
+                        this.sendOutMessage(item.mixerMessage, 1, value, type)
                     }
                 }, itemIndex * 100)
             }
@@ -524,12 +527,9 @@ export class OscMixerConnection {
     pingMixerCommand() {
         //Ping OSC mixer if mixerProtocol needs it.
         this.mixerProtocol.pingCommand.map((command) => {
-            this.sendOutMessage(
-                command.mixerMessage,
-                0,
-                command.value,
-                command.type
-            )
+            let value = command.value || 0
+            let type = command.type || 'i'
+            this.sendOutMessage(command.mixerMessage, 0, value, type)
         })
         global.mainThreadHandler.updateFullClientStore()
         this.mixerOnlineTimer = setTimeout(() => {
@@ -690,13 +690,19 @@ export class OscMixerConnection {
         )
     }
 
+    updateInputGain(channelIndex: number, level: number) {
+        return true
+    }
+    updateInputSelector(channelIndex: number, inputSelected: number) {
+        return true
+    }
+
     updateThreshold(channelIndex: number, level: number) {
         let channelType = state.channels[0].channel[channelIndex].channelType
         let channelTypeIndex =
             state.channels[0].channel[channelIndex].channelTypeIndex
         let thr = this.mixerProtocol.channelTypes[channelType].toMixer
             .THRESHOLD[0]
-        level = level * (thr.max - thr.min) + thr.min
         this.sendOutMessage(thr.mixerMessage, channelTypeIndex + 1, level, 'f')
     }
     updateRatio(channelIndex: number, level: number) {
@@ -705,7 +711,6 @@ export class OscMixerConnection {
             state.channels[0].channel[channelIndex].channelTypeIndex
         let ratio = this.mixerProtocol.channelTypes[channelType].toMixer
             .RATIO[0]
-        level = level * (ratio.max - ratio.min) + ratio.min
         this.sendOutMessage(
             ratio.mixerMessage,
             channelTypeIndex + 1,
@@ -719,7 +724,6 @@ export class OscMixerConnection {
             state.channels[0].channel[channelIndex].channelTypeIndex
         let delayTime = this.mixerProtocol.channelTypes[channelType].toMixer
             .DELAY_TIME[0]
-        level = level * (delayTime.max - delayTime.min) + delayTime.min
         this.sendOutMessage(
             delayTime.mixerMessage,
             channelTypeIndex + 1,
@@ -732,7 +736,6 @@ export class OscMixerConnection {
         let channelTypeIndex =
             state.channels[0].channel[channelIndex].channelTypeIndex
         let low = this.mixerProtocol.channelTypes[channelType].toMixer.LOW[0]
-        level = level * (low.max - low.min) + low.min
         this.sendOutMessage(low.mixerMessage, channelTypeIndex + 1, level, 'f')
     }
     updateLoMid(channelIndex: number, level: number) {
@@ -741,7 +744,6 @@ export class OscMixerConnection {
             state.channels[0].channel[channelIndex].channelTypeIndex
         let loMid = this.mixerProtocol.channelTypes[channelType].toMixer
             .LO_MID[0]
-        level = level * (loMid.max - loMid.min) + loMid.min
         this.sendOutMessage(
             loMid.mixerMessage,
             channelTypeIndex + 1,
@@ -754,7 +756,6 @@ export class OscMixerConnection {
         let channelTypeIndex =
             state.channels[0].channel[channelIndex].channelTypeIndex
         let mid = this.mixerProtocol.channelTypes[channelType].toMixer.MID[0]
-        level = level * (mid.max - mid.min) + mid.min
         this.sendOutMessage(mid.mixerMessage, channelTypeIndex + 1, level, 'f')
     }
     updateHigh(channelIndex: number, level: number) {
@@ -762,7 +763,6 @@ export class OscMixerConnection {
         let channelTypeIndex =
             state.channels[0].channel[channelIndex].channelTypeIndex
         let high = this.mixerProtocol.channelTypes[channelType].toMixer.HIGH[0]
-        level = level * (high.max - high.min) + high.min
         this.sendOutMessage(high.mixerMessage, channelTypeIndex + 1, level, 'f')
     }
 
@@ -780,7 +780,6 @@ export class OscMixerConnection {
             auxSendNumber
         )
 
-        level = level * (auxSendCmd.max - auxSendCmd.min) + auxSendCmd.min
         this.sendOutMessage(message, channel, level, 'f')
     }
 
@@ -809,6 +808,29 @@ export class OscMixerConnection {
             channelName,
             's'
         )
+    }
+
+    loadMixerPreset(presetName: string) {
+        logger.info('Loading preset : ' + presetName)
+        if (this.mixerProtocol.presetFileExtension === 'X32') {
+            let data = JSON.parse(
+                fs.readFileSync(path.resolve('storage', presetName))
+            )
+
+            this.oscConnection.send({
+                address: this.mixerProtocol.loadPresetCommand[0].mixerMessage,
+                args: [
+                    {
+                        type: 's',
+                        value: 'scene',
+                    },
+                    {
+                        type: 'i',
+                        value: parseInt(data.sceneIndex),
+                    },
+                ],
+            })
+        }
     }
 
     injectCommand(command: string[]) {

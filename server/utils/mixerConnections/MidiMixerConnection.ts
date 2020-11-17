@@ -23,6 +23,7 @@ import {
     SET_CHANNEL_LABEL,
     TOGGLE_PGM,
 } from '../../reducers/faderActions'
+import { logger } from '../logger'
 
 export class MidiMixerConnection {
     store: any
@@ -104,10 +105,7 @@ export class MidiMixerConnection {
                         state.faders[0].fader[faderChannel - 1].faderLevel
                     )
                 }
-                if (
-                    state.faders[0].fader[faderChannel - 1].pgmOn &&
-                    this.mixerProtocol.mode === 'master'
-                ) {
+                if (state.faders[0].fader[faderChannel - 1].pgmOn) {
                     state.channels[0].channel.map(
                         (channel: any, index: number) => {
                             if (channel.assignedFader === faderChannel - 1) {
@@ -229,6 +227,14 @@ export class MidiMixerConnection {
     updateNextAux(channelIndex: number, level: number) {
         return true
     }
+
+    updateInputGain(channelIndex: number, level: number) {
+        return true
+    }
+    updateInputSelector(channelIndex: number, inputSelected: number) {
+        return true
+    }
+
     updateThreshold(channelIndex: number, level: number) {
         return true
     }
@@ -272,6 +278,8 @@ export class MidiMixerConnection {
             channelName
         )
     }
+
+    loadMixerPreset(presetName: string) {}
 
     injectCommand(command: string[]) {
         return true

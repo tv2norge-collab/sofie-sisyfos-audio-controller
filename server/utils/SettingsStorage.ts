@@ -22,7 +22,9 @@ export const loadSettings = (storeRedux: any) => {
 }
 
 export const saveSettings = (settings: any) => {
-    let json = JSON.stringify(settings)
+    const settingsCopy = { ...settings }
+    delete settingsCopy.customPages
+    let json = JSON.stringify(settingsCopy)
     if (!fs.existsSync('storage')) {
         fs.mkdirSync('storage')
     }
@@ -127,6 +129,22 @@ export const getSnapShotList = () => {
     return files
 }
 
+export const getMixerPresetList = (fileExtension: string): string[] => {
+    if (fileExtension === '') {
+        return []
+    }
+    const files = fs
+        .readdirSync(path.resolve('storage'))
+        .filter((file: string) => {
+            if (
+                file.toUpperCase().includes('.' + fileExtension.toUpperCase())
+            ) {
+                return true
+            }
+        })
+    return files
+}
+
 export const getCcgSettingsList = () => {
     const files = fs
         .readdirSync(path.resolve('storage'))
@@ -161,4 +179,15 @@ export const setCcgDefault = (fileName: string) => {
             )
         }
     })
+}
+
+export const getCustomPages = (): object | undefined => {
+    try {
+        return JSON.parse(
+            fs.readFileSync(path.resolve('storage', 'pages.json'))
+        )
+    } catch (error) {
+        logger.error('Couldn´t read pages.json file', {})
+        return
+    }
 }

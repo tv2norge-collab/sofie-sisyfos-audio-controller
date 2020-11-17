@@ -7,6 +7,7 @@ import {
     SET_CHANNEL_LABEL,
     SET_COMPLETE_FADER_STATE,
     SET_FADER_LEVEL,
+    SET_INPUT_GAIN,
     SET_MUTE,
     SET_PFL,
     SET_PGM,
@@ -35,6 +36,12 @@ import {
     SET_FADER_MONITOR,
     SET_SINGLE_FADER_STATE,
     SHOW_IN_MINI_MONITOR,
+    SET_INPUT_SELECTOR,
+    SET_CHANNEL_DISABLED,
+    TOGGLE_AMIX,
+    SET_AMIX,
+    SET_CAPABILITY,
+    TOGGLE_ALL_MANUAL,
 } from '../reducers/faderActions'
 
 export interface IFaders {
@@ -44,6 +51,8 @@ export interface IFaders {
 
 export interface IFader {
     faderLevel: number
+    inputGain: number
+    inputSelector: number
     label: string
     pgmOn: boolean
     voOn: boolean
@@ -51,6 +60,7 @@ export interface IFader {
     pstVoOn: boolean
     pflOn: boolean
     muteOn: boolean
+    amixOn: boolean
     low: number
     loMid: number
     mid: number
@@ -63,6 +73,16 @@ export interface IFader {
     showInMiniMonitor: boolean
     ignoreAutomation: boolean
     snapOn: Array<boolean>
+    disabled: boolean
+
+    /**
+     * Assuming that the protocol has a "feature", can it be enabled on this fader?
+     * If the capibilities object does not exist, yes is assumed.
+     */
+    capabilities?: {
+        hasAMix?: boolean
+        hasInputSelector?: boolean
+    }
 }
 
 export interface IVuMeters {
@@ -81,6 +101,8 @@ const defaultFadersReducerState = (numberOfFaders: number): IFaders[] => {
     for (let index = 0; index < numberOfFaders; index++) {
         defaultObj[0].fader[index] = {
             faderLevel: 0.75,
+            inputGain: 0.75,
+            inputSelector: 1,
             label: '',
             pgmOn: false,
             voOn: false,
@@ -88,6 +110,7 @@ const defaultFadersReducerState = (numberOfFaders: number): IFaders[] => {
             pstVoOn: false,
             pflOn: false,
             muteOn: false,
+            amixOn: false,
             low: 0.75,
             loMid: 0.75,
             mid: 0.75,
@@ -100,6 +123,7 @@ const defaultFadersReducerState = (numberOfFaders: number): IFaders[] => {
             showInMiniMonitor: false,
             ignoreAutomation: false,
             snapOn: [],
+            disabled: false,
         }
         defaultObj[0].vuMeters.push({
             vuVal: 0.0,
@@ -122,6 +146,9 @@ export const faders = (
             fader: [...state[0].fader],
         },
     ]
+    if (action.channel > nextState[0].fader.length) {
+        return nextState
+    }
 
     switch (action.type) {
         case SET_VU_LEVEL: //channel:  level:
@@ -162,6 +189,16 @@ export const faders = (
                 action.level
             )
             return nextState
+        case SET_INPUT_GAIN: //channel:  level:
+            nextState[0].fader[action.channel].inputGain = parseFloat(
+                action.level
+            )
+            return nextState
+        case SET_INPUT_SELECTOR: //channel:  selected:
+            nextState[0].fader[action.channel].inputSelector = parseFloat(
+                action.selected
+            )
+            return nextState
         case SET_FADER_THRESHOLD: //channel:  level:
             nextState[0].fader[action.channel].threshold = parseFloat(
                 action.level
@@ -194,6 +231,7 @@ export const faders = (
             nextState[0].vuMeters = action.vuMeters
             return nextState
         case SET_CHANNEL_LABEL: //channel:  label:
+            if (!nextState[0].fader[action.channel]) return nextState
             nextState[0].fader[action.channel].label = action.label
             return nextState
         case TOGGLE_PGM: //channel
@@ -308,6 +346,45 @@ export const faders = (
                     .snapOn[action.snapIndex]
             })
             return nextState
+        case SET_CHANNEL_DISABLED:
+            if (!nextState[0].fader[action.channel]) return nextState
+            nextState[0].fader[action.channel].disabled = action.disabled
+            return nextState
+        case TOGGLE_AMIX: //channel
+            nextState[0].fader[action.channel].amixOn = !nextState[0].fader[
+                action.channel
+            ].amixOn
+            return nextState
+        case SET_AMIX: //channel
+            nextState[0].fader[action.channel].amixOn = action.state
+            return nextState
+        case SET_CAPABILITY:
+            nextState[0].fader[action.channel].capabilities = {
+                ...nextState[0].fader[action.channel].capabilities,
+                [action.capability]: action.enabled,
+            }
+            // remove object if empty:
+            if (
+                Object.entries(nextState[0].fader[action.channel].capabilities!)
+                    .length === 0
+            ) {
+                delete nextState[0].fader[action.channel].capabilities
+            }
+            return nextState
+        case TOGGLE_ALL_MANUAL:
+            const isAllManual =
+                nextState[0].fader.find((f) => f.ignoreAutomation !== true) ===
+                undefined
+
+            if (isAllManual) {
+                nextState[0].fader.forEach((f) => {
+                    f.ignoreAutomation = false
+                })
+            } else {
+                nextState[0].fader.forEach((f) => {
+                    f.ignoreAutomation = true
+                })
+            }
         default:
             return nextState
     }

@@ -19,9 +19,12 @@ import {
     SOCKET_SET_MID,
     SOCKET_SET_HIGH,
     SOCKET_SET_AUX_LEVEL,
+    SOCKET_SET_INPUT_GAIN,
+    SOCKET_SET_INPUT_SELECTOR,
 } from '../../server/constants/SOCKET_IO_DISPATCHERS'
 import CcgChannelInputSettings from './CcgChannelSettings'
 import ReductionMeter from './ReductionMeter'
+import ClassNames from 'classnames'
 
 interface IChanStripInjectProps {
     label: string
@@ -42,6 +45,14 @@ class ChanStrip extends React.PureComponent<
 > {
     constructor(props: any) {
         super(props)
+    }
+
+    shouldComponentUpdate(nextProps: IChanStripInjectProps & IChanStripProps) {
+        if (nextProps.faderIndex > -1) {
+            return true
+        } else {
+            return false
+        }
     }
 
     handleShowRoutingOptions() {
@@ -72,7 +83,18 @@ class ChanStrip extends React.PureComponent<
             channel: -1,
         })
     }
-
+    handleInputSelect(selected: number) {
+        window.socketIoClient.emit(SOCKET_SET_INPUT_SELECTOR, {
+            faderIndex: this.props.faderIndex,
+            selected: selected,
+        })
+    }
+    handleInputGain(event: any) {
+        window.socketIoClient.emit(SOCKET_SET_INPUT_GAIN, {
+            faderIndex: this.props.faderIndex,
+            level: parseFloat(event),
+        })
+    }
     handleThreshold(event: any) {
         window.socketIoClient.emit(SOCKET_SET_THRESHOLD, {
             channel: this.props.faderIndex,
@@ -134,6 +156,81 @@ class ChanStrip extends React.PureComponent<
         })
     }
 
+    inputSelectorButton(index: number) {
+        const isActive =
+            this.props.fader[this.props.faderIndex].inputSelector === index + 1
+        return (
+            <button
+                className={ClassNames('input-select', {
+                    active: isActive,
+                })}
+                // className={'input-select' + (isActive ? ' active' : '')}
+                onClick={() => {
+                    this.handleInputSelect(index + 1)
+                }}
+            >
+                {window.mixerProtocol.channelTypes[0].toMixer
+                    .CHANNEL_INPUT_SELECTOR
+                    ? window.mixerProtocol.channelTypes[0].toMixer
+                          .CHANNEL_INPUT_SELECTOR[index].label
+                    : null}
+            </button>
+        )
+    }
+
+    inputSelector() {
+        return (
+            <div
+                className={ClassNames('input-buttons', {
+                    disabled:
+                        this.props.fader[this.props.faderIndex].capabilities &&
+                        !this.props.fader[this.props.faderIndex].capabilities!
+                            .hasInputSelector,
+                })}
+            >
+                {window.mixerProtocol.channelTypes[0].toMixer
+                    .CHANNEL_INPUT_SELECTOR ? (
+                    <React.Fragment>
+                        {window.mixerProtocol.channelTypes[0].toMixer.CHANNEL_INPUT_SELECTOR.map(
+                            (none: any, index: number) => {
+                                return this.inputSelectorButton(index)
+                            }
+                        )}
+                    </React.Fragment>
+                ) : null}
+            </div>
+        )
+    }
+
+    inputGain() {
+        return (
+            <div className="parameter-text">
+                Gain
+                {window.mixerProtocol.channelTypes[0].toMixer
+                    .CHANNEL_INPUT_GAIN ? (
+                    <React.Fragment>
+                        <ReactSlider
+                            className="chan-strip-fader"
+                            thumbClassName="chan-strip-thumb"
+                            orientation="vertical"
+                            invert
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={
+                                this.props.fader[this.props.faderIndex]
+                                    .inputGain
+                            }
+                            onChange={(event: any) => {
+                                this.handleInputGain(event)
+                            }}
+                        />
+                    </React.Fragment>
+                ) : null}
+            </div>
+        )
+    }
+
     threshold() {
         return (
             <div className="parameter-text">
@@ -179,7 +276,7 @@ class ChanStrip extends React.PureComponent<
     gainReduction() {
         return (
             <div className="parameter-text">
-                Gain Red.
+                Redution
                 <ReductionMeter faderIndex={this.props.faderIndex} />
             </div>
         )
@@ -187,6 +284,30 @@ class ChanStrip extends React.PureComponent<
     delay() {
         return (
             <React.Fragment>
+                <div className="parameter-text">
+                    {Math.round(
+                        500 *
+                            (this.props.fader[this.props.faderIndex]
+                                .delayTime || 0)
+                    )}{' '}
+                    ms
+                    <ReactSlider
+                        className="chan-strip-fader"
+                        thumbClassName="chan-strip-thumb"
+                        orientation="vertical"
+                        invert
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={
+                            this.props.fader[this.props.faderIndex].delayTime ||
+                            0
+                        }
+                        onChange={(event: any) => {
+                            this.handleDelay(event)
+                        }}
+                    />
+                </div>
                 <div className="delayButtons">
                     <button
                         className="delayTime"
@@ -236,30 +357,6 @@ class ChanStrip extends React.PureComponent<
                     >
                         -10ms
                     </button>
-                </div>
-                <div className="parameter-text">
-                    {Math.round(
-                        500 *
-                            (this.props.fader[this.props.faderIndex]
-                                .delayTime || 0)
-                    )}{' '}
-                    ms
-                    <ReactSlider
-                        className="chan-strip-fader"
-                        thumbClassName="chan-strip-thumb"
-                        orientation="vertical"
-                        invert
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={
-                            this.props.fader[this.props.faderIndex].delayTime ||
-                            0
-                        }
-                        onChange={(event: any) => {
-                            this.handleDelay(event)
-                        }}
-                    />
                 </div>
             </React.Fragment>
         )
@@ -386,50 +483,140 @@ class ChanStrip extends React.PureComponent<
     }
     parameters() {
         if (this.props.offtubeMode) {
+            const hasInput =
+                window.mixerProtocol.channelTypes[0].toMixer
+                    .CHANNEL_INPUT_GAIN ||
+                window.mixerProtocol.channelTypes[0].toMixer
+                    .CHANNEL_INPUT_SELECTOR
+            const hasComp =
+                window.mixerProtocol.channelTypes[0].toMixer.THRESHOLD ||
+                window.mixerProtocol.channelTypes[0].toMixer.DELAY_TIME
+            const hasDelay =
+                window.mixerProtocol.channelTypes[0].toMixer.DELAY_TIME
+            const hasEq =
+                window.mixerProtocol.channelTypes[0].toMixer.LOW ||
+                window.mixerProtocol.channelTypes[0].toMixer.LO_MID ||
+                window.mixerProtocol.channelTypes[0].toMixer.MID ||
+                window.mixerProtocol.channelTypes[0].toMixer.HIGH
+            const hasMonitorSends = this.props.channel.find(
+                (ch: any) => ch.auxLevel[this.props.auxSendIndex] >= 0
+            )
             return (
                 <div className="parameters">
-                    <div className="group-text">
-                        COMPRESSOR &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; DELAY
+                    <div className="horizontal">
+                        {hasInput && (
+                            <React.Fragment>
+                                <div className="item">
+                                    <div className="title">INPUT</div>
+                                    <div className="content">
+                                        {this.inputSelector()}
+                                        {this.inputGain()}
+                                    </div>
+                                </div>
+                            </React.Fragment>
+                        )}
+                        {hasComp && (
+                            <React.Fragment>
+                                <div className="item">
+                                    <div className="title">COMPRESSOR</div>
+                                    <div className="content">
+                                        {this.threshold()}
+                                        <p className="zero-comp">______</p>
+                                        {this.ratio()}
+                                        <p className="zero-comp">______</p>
+                                        {this.gainReduction()}
+                                    </div>
+                                </div>
+                            </React.Fragment>
+                        )}
+                        {hasDelay && (
+                            <React.Fragment>
+                                <div className="item">
+                                    <div className="title">DELAY</div>
+                                    <div className="content">
+                                        {this.delay()}
+                                    </div>
+                                </div>
+                            </React.Fragment>
+                        )}
                     </div>
-                    <div className="parameter-group">
-                        {this.threshold()}
-                        <p className="zero-comp">______</p>
-                        {this.ratio()}
-                        <p className="zero-comp">______</p>
-                        {this.gainReduction()}
-                        <p className="horizontal-space"></p>
-                        {this.delay()}
-                    </div>
-                    <hr />
-                    <div className="group-text">{'EQUALIZER'}</div>
-                    <div className="parameter-group">
-                        {this.low()}
-                        <p className="zero-eq">_______</p>
-                        {this.loMid()}
-                        <p className="zero-eq">_______</p>
-                        {this.mid()}
-                        <p className="zero-eq">_______</p>
-                        {this.high()}
-                        <p className="zero-eq">_______</p>
-                    </div>
-                    <hr />
-                    <div className="group-text">
-                        {this.props.label ||
-                            'FADER ' + (this.props.faderIndex + 1)}
-                        {' - MONITOR MIX MINUS'}
-                    </div>
-                    <ul className="monitor-sends">
-                        {this.props.channel.map((ch: any, index: number) => {
-                            if (ch.auxLevel[this.props.auxSendIndex] >= 0) {
-                                return this.monitor(index)
-                            }
-                        })}
-                    </ul>
+
+                    {hasEq && (
+                        <React.Fragment>
+                            <hr />
+                            <div className="horizontal">
+                                <div className="item">
+                                    <div className="title">EQUALIZER</div>
+                                    <div className="content">
+                                        <div className="eq-group">
+                                            {window.mixerProtocol
+                                                .channelTypes[0].toMixer.LOW ? (
+                                                <React.Fragment>
+                                                    {this.low()}
+                                                    <p className="zero-eq">
+                                                        _______
+                                                    </p>
+                                                </React.Fragment>
+                                            ) : null}
+                                            {window.mixerProtocol
+                                                .channelTypes[0].toMixer
+                                                .LO_MID ? (
+                                                <React.Fragment>
+                                                    {this.loMid()}
+                                                    <p className="zero-eq">
+                                                        _______
+                                                    </p>
+                                                </React.Fragment>
+                                            ) : null}
+                                            {window.mixerProtocol
+                                                .channelTypes[0].toMixer.MID ? (
+                                                <React.Fragment>
+                                                    {this.mid()}
+                                                    <p className="zero-eq">
+                                                        _______
+                                                    </p>
+                                                </React.Fragment>
+                                            ) : null}
+                                            {window.mixerProtocol
+                                                .channelTypes[0].toMixer
+                                                .HIGH ? (
+                                                <React.Fragment>
+                                                    {this.high()}
+                                                    <p className="zero-eq">
+                                                        _______
+                                                    </p>
+                                                </React.Fragment>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </React.Fragment>
+                    )}
+
+                    {hasMonitorSends && (
+                        <React.Fragment>
+                            <hr />
+                            <div className="group-text">
+                                {this.props.label ||
+                                    'FADER ' + (this.props.faderIndex + 1)}
+                                {' - MONITOR MIX MINUS'}
+                            </div>
+                            <ul className="monitor-sends">
+                                {this.props.channel.map(
+                                    (ch: any, index: number) => {
+                                        if (
+                                            ch.auxLevel[
+                                                this.props.auxSendIndex
+                                            ] >= 0
+                                        ) {
+                                            return this.monitor(index)
+                                        }
+                                    }
+                                )}
+                            </ul>
+                        </React.Fragment>
+                    )}
                 </div>
             )
         } else {
@@ -456,7 +643,7 @@ class ChanStrip extends React.PureComponent<
                             'settings=0'
                         ) ? null : (
                             <button
-                                className="button"
+                                className="button half"
                                 onClick={() => this.handleShowRoutingOptions()}
                             >
                                 CHANNEL ROUTING
@@ -466,7 +653,7 @@ class ChanStrip extends React.PureComponent<
                             'settings=0'
                         ) ? null : (
                             <button
-                                className="button"
+                                className="button half"
                                 onClick={() => this.handleShowMonitorOptions()}
                             >
                                 MONITOR ROUTING
