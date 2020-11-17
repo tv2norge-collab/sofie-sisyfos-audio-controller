@@ -11,11 +11,13 @@ import {
     TOGGLE_SHOW_MONITOR_OPTIONS,
     SET_SERVER_ONLINE,
     SET_PAGE,
+    TOGGLE_SHOW_PAGES_SETUP,
+    SET_PAGES_LIST,
+    TOGGLE_SHOW_CHAN_STRIP_FULL,
 } from '../reducers/settingsActions'
 
 export enum PageType {
     All,
-    NumberedPage,
     CustomPage,
 }
 
@@ -23,7 +25,9 @@ export interface ISettings {
     /** UI state (non persistant) */
     showSnaps: boolean
     showSettings: boolean
+    showPagesSetup: boolean
     showChanStrip: number
+    showChanStripFull: number
     showOptions: number | false
     showMonitorOptions: number
     showStorage: boolean
@@ -32,28 +36,15 @@ export interface ISettings {
         start?: number
         id?: string
     }
-    customPages?: Array<{
-        id: string
-        label: string
-        faders: Array<number>
-    }>
+    customPages: Array<ICustomPages>
 
     /** User config */
-    mixerProtocol: string
-    localIp: string
-    localOscPort: number
-    deviceIp: string
-    devicePort: number
-    protocolLatency: number // If a protocol has latency and feedback, the amount of time before enabling receiving data from channel again
+    numberOfMixers: number
+    mixers: IMixerSettings[]
     enableRemoteFader: boolean
-    mixerMidiInputPort: string
-    mixerMidiOutputPort: string
     remoteFaderMidiInputPort: string
     remoteFaderMidiOutputPort: string
-    numberOfChannelsInType: Array<number>
     numberOfFaders: number
-    numberOfAux: number
-    nextSendAux: number
     numberOfSnaps: number
     fadeTime: number // Default fade time for PGM ON - OFF
     voFadeTime: number // Default fade time for VO ON - OFF
@@ -63,39 +54,67 @@ export interface ISettings {
     offtubeMode: boolean
     showPfl: boolean
     enablePages: boolean
-    pageLength: number
+    numberOfCustomPages: number
     chanStripFollowsPFL: boolean
 
     /** Connection state */
-    mixerOnline: boolean
     serverOnline: boolean
+}
+
+export interface ICustomPages {
+    id: string
+    label: string
+    faders: Array<number>
+}
+
+export interface IMixerSettings {
+    mixerProtocol: string
+    deviceIp: string
+    devicePort: number
+    protocolLatency: number // If a protocol has latency and feedback, the amount of time before enabling receiving data from channel again
+    mixerMidiInputPort: string
+    mixerMidiOutputPort: string
+    numberOfChannelsInType: Array<number>
+    numberOfAux: number
+    nextSendAux: number
+    mixerOnline: boolean
+    localIp: string
+    localOscPort: number
 }
 
 const defaultSettingsReducerState: Array<ISettings> = [
     {
         showSnaps: false,
         showSettings: false,
+        showPagesSetup: false,
         showChanStrip: -1,
+        showChanStripFull: -1,
         showOptions: false,
         showMonitorOptions: -1,
         showStorage: false,
         currentPage: { type: PageType.All },
-
-        mixerProtocol: 'sslSystemT',
-        localIp: '0.0.0.0',
-        localOscPort: 1234,
-        deviceIp: '0.0.0.0',
-        devicePort: 10024,
-        protocolLatency: 220,
+        numberOfMixers: 1,
+        customPages: [],
+        mixers: [
+            {
+                mixerProtocol: 'sslSystemT',
+                deviceIp: '0.0.0.0',
+                devicePort: 10024,
+                protocolLatency: 220,
+                mixerMidiInputPort: '',
+                mixerMidiOutputPort: '',
+                numberOfAux: 0,
+                nextSendAux: -1,
+                numberOfChannelsInType: [8],
+                mixerOnline: false,
+                localIp: '0.0.0.0',
+                localOscPort: 1234,
+            },
+        ],
         enableRemoteFader: false,
-        mixerMidiInputPort: '',
-        mixerMidiOutputPort: '',
         remoteFaderMidiInputPort: '',
         remoteFaderMidiOutputPort: '',
-        numberOfChannelsInType: [8],
         numberOfFaders: 8,
-        numberOfAux: 0,
-        nextSendAux: -1,
         numberOfSnaps: DEFAULTS.NUMBER_OF_SNAPS,
         voLevel: 30,
         autoResetLevel: 5,
@@ -105,10 +124,8 @@ const defaultSettingsReducerState: Array<ISettings> = [
         voFadeTime: 280,
         showPfl: false,
         enablePages: true,
-        pageLength: 16,
+        numberOfCustomPages: 16,
         chanStripFollowsPFL: true,
-
-        mixerOnline: false,
         serverOnline: true,
     },
 ]
@@ -123,11 +140,21 @@ export const settings = (
         case TOGGLE_SHOW_SETTINGS:
             nextState[0].showSettings = !nextState[0].showSettings
             return nextState
+        case TOGGLE_SHOW_PAGES_SETUP:
+            nextState[0].showPagesSetup = !nextState[0].showPagesSetup
+            return nextState
         case TOGGLE_SHOW_CHAN_STRIP:
             if (nextState[0].showChanStrip !== action.channel) {
                 nextState[0].showChanStrip = action.channel
             } else {
                 nextState[0].showChanStrip = -1
+            }
+            return nextState
+        case TOGGLE_SHOW_CHAN_STRIP_FULL:
+            if (nextState[0].showChanStripFull !== action.channel) {
+                nextState[0].showChanStripFull = action.channel
+            } else {
+                nextState[0].showChanStripFull = -1
             }
             return nextState
         case TOGGLE_SHOW_MONITOR_OPTIONS:
@@ -156,8 +183,11 @@ export const settings = (
                 start: action.start,
             }
             return nextState
+        case SET_PAGES_LIST:
+            nextState[0].customPages = action.customPages
+            return nextState
         case SET_MIXER_ONLINE:
-            nextState[0].mixerOnline = action.mixerOnline
+            nextState[0].mixers[0].mixerOnline = action.mixerOnline
             return nextState
         case SET_SERVER_ONLINE:
             nextState[0].serverOnline = action.serverOnline
@@ -166,20 +196,24 @@ export const settings = (
             nextState[0] = action.settings
 
             // ignore UI state:
-            nextState[0].showSettings = state[0].showSettings
-            nextState[0].showOptions = state[0].showOptions
-            nextState[0].showMonitorOptions = state[0].showMonitorOptions
-            nextState[0].showStorage = state[0].showStorage
-            nextState[0].showChanStrip = state[0].showChanStrip
-            nextState[0].serverOnline = state[0].serverOnline
+            nextState[0].showSettings = state[0].showSettings || false
+            nextState[0].showOptions = state[0].showOptions || false
+            nextState[0].showMonitorOptions = state[0].showMonitorOptions || -1
+            nextState[0].showStorage = state[0].showStorage || false
+            nextState[0].showChanStrip = state[0].showChanStrip || -1
+            nextState[0].serverOnline = state[0].serverOnline || true
             nextState[0].currentPage = state[0].currentPage
             nextState[0].customPages = state[0].customPages
 
+            if (!nextState[0].mixers) {
+                nextState = [Object.assign({}, defaultSettingsReducerState[0])]
+            }
             if (
-                typeof MixerProtocolPresets[nextState[0].mixerProtocol] ===
-                'undefined'
+                typeof MixerProtocolPresets[
+                    nextState[0].mixers[0].mixerProtocol
+                ] === 'undefined'
             ) {
-                nextState[0].mixerProtocol = 'genericMidi'
+                nextState[0].mixers[0].mixerProtocol = 'genericMidi'
             }
             return nextState
         default:

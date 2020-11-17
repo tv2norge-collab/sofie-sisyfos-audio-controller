@@ -1,5 +1,28 @@
+export enum fxParamsList {
+    EqGain01,
+    EqGain02,
+    EqGain03,
+    EqGain04,
+    EqFreq01,
+    EqFreq02,
+    EqFreq03,
+    EqFreq04,
+    EqQ01,
+    EqQ02,
+    EqQ03,
+    EqQ04,
+    DelayTime,
+    CompThrs,
+    CompRatio,
+    CompKnee,
+    CompMakeUp,
+    CompAttack,
+    CompHold,
+    CompRelease,
+}
 export interface IMixerProtocolGeneric {
     protocol: string
+    fxList?: {}
     label: string
     presetFileExtension?: string
     loadPresetCommand?: Array<IMixerMessageProtocol>
@@ -39,13 +62,7 @@ export interface IChannelTypes {
         CHANNEL_NAME?: Array<IMixerMessageProtocol>
         PFL?: Array<IMixerMessageProtocol>
         NEXT_SEND?: Array<IMixerMessageProtocol>
-        THRESHOLD?: Array<IMixerMessageProtocol>
-        RATIO?: Array<IMixerMessageProtocol>
-        DELAY_TIME?: Array<IMixerMessageProtocol>
-        LOW?: Array<IMixerMessageProtocol>
-        LO_MID?: Array<IMixerMessageProtocol>
-        MID?: Array<IMixerMessageProtocol>
-        HIGH?: Array<IMixerMessageProtocol>
+        [FX_PARAM: number]: Array<IMixerMessageProtocol>
         AUX_LEVEL?: Array<IMixerMessageProtocol>
         CHANNEL_MUTE_ON?: Array<IMixerMessageProtocol>
         CHANNEL_MUTE_OFF?: Array<IMixerMessageProtocol>
@@ -59,13 +76,7 @@ export interface IChannelTypes {
         PFL_ON?: Array<IMixerMessageProtocol>
         PFL_OFF?: Array<IMixerMessageProtocol>
         NEXT_SEND?: Array<IMixerMessageProtocol>
-        THRESHOLD?: Array<IMixerMessageProtocol>
-        RATIO?: Array<IMixerMessageProtocol>
-        DELAY_TIME?: Array<IMixerMessageProtocol>
-        LOW?: Array<IMixerMessageProtocol>
-        LO_MID?: Array<IMixerMessageProtocol>
-        MID?: Array<IMixerMessageProtocol>
-        HIGH?: Array<IMixerMessageProtocol>
+        [FX_PARAM: number]: Array<IMixerMessageProtocol>
         AUX_LEVEL?: Array<IMixerMessageProtocol>
         CHANNEL_MUTE_ON?: Array<IMixerMessageProtocol>
         CHANNEL_MUTE_OFF?: Array<IMixerMessageProtocol>
@@ -81,6 +92,15 @@ interface IMixerMessageProtocol {
     max?: number
     zero?: number
     label?: string
+    valueLabel?: string
+    minLabel?: number
+    maxLabel?: number
+    zeroLabel?: number
+}
+
+export interface IFxProtocol {
+    key: fxParamsList
+    params: Array<IMixerMessageProtocol>
 }
 
 export const emptyMixerMessage = (): IMixerMessageProtocol => {
@@ -110,6 +130,7 @@ export interface ICasparCGMixerGeometryFile {
         PGM_CHANNEL_FADER_LEVEL: Array<ICasparCGChannelLayerPair[]>
         PFL_AUX_FADER_LEVEL: Array<ICasparCGChannelLayerPair[]>
         NEXT_AUX_FADER_LEVEL: Array<ICasparCGChannelLayerPair[]>
+        CHANNEL_INPUT_SELECTOR?: Array<IMixerMessageProtocol>
     }
     sourceOptions?: {
         sources: Array<
@@ -140,6 +161,7 @@ export interface ICasparCGMixerGeometry extends IMixerProtocolGeneric {
         PGM_CHANNEL_FADER_LEVEL: Array<ICasparCGChannelLayerPair[]>
         PFL_AUX_FADER_LEVEL: Array<ICasparCGChannelLayerPair[]>
         NEXT_AUX_FADER_LEVEL: Array<ICasparCGChannelLayerPair[]>
+        CHANNEL_INPUT_SELECTOR?: Array<IMixerMessageProtocol>
     }
     channelLabels?: string[]
     sourceOptions?: {

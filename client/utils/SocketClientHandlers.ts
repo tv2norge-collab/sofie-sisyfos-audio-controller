@@ -1,86 +1,88 @@
 import {
-    SET_COMPLETE_FADER_STATE,
-    SET_VU_LEVEL,
-    SET_SINGLE_FADER_STATE,
-    SET_VU_REDUCTION_LEVEL,
+    storeSetCompleteFaderState,
+    storeSetSingleFaderState,
+    storeVuReductionLevel,
 } from '../../server/reducers/faderActions'
 import {
-    SET_COMPLETE_CH_STATE,
-    SET_SINGLE_CH_STATE,
+    storeSetCompleteChState,
+    storeSetSingleChState,
 } from '../../server/reducers/channelActions'
 import {
-    UPDATE_SETTINGS,
-    SET_MIXER_ONLINE,
-    SET_SERVER_ONLINE,
+    storeSetMixerOnline,
+    storeSetServerOnline,
+    storeUpdatePagesList,
+    storeUpdateSettings,
 } from '../../server/reducers/settingsActions'
 import {
-    SOCKET_SET_VU,
     SOCKET_RETURN_SNAPSHOT_LIST,
     SOCKET_SET_FULL_STORE,
     SOCKET_SET_STORE_FADER,
     SOCKET_SET_STORE_CHANNEL,
     SOCKET_RETURN_CCG_LIST,
-    SOCKET_SET_VU_REDUCTION,
     SOCKET_SET_MIXER_ONLINE,
-    SOCKET_SET_ALL_VU,
     SOCKET_RETURN_MIXER_PRESET_LIST,
     SOCKET_RETURN_PAGES_LIST,
 } from '../../server/constants/SOCKET_IO_DISPATCHERS'
+import {
+    IchConnection,
+    InumberOfChannels,
+} from '../../server/reducers/channelsReducer'
+import { VuType } from '../../server/utils/vuServer'
+
+export const vuMeters: number[][] = []
 
 export const socketClientHandlers = () => {
     window.socketIoClient
         .on('connect', () => {
-            window.storeRedux.dispatch({
-                type: SET_SERVER_ONLINE,
-                serverOnline: true,
-            })
+            window.storeRedux.dispatch(storeSetServerOnline(true))
             console.log('CONNECTED TO SISYFOS SERVER')
+            if (!window.location.search.includes('vu=0')) {
+                // subscribe to VU'
+                window.socketIoClient.emit(
+                    'subscribe-vu-meter',
+                    'subscribe to vu meters'
+                )
+            }
         })
         .on('disconnect', () => {
-            window.storeRedux.dispatch({
-                type: SET_SERVER_ONLINE,
-                serverOnline: false,
-            })
+            window.storeRedux.dispatch(storeSetServerOnline(false))
             console.log('LOST CONNECTION TO SISYFOS SERVER')
         })
         .on(SOCKET_SET_FULL_STORE, (payload: any) => {
             // console.log('STATE RECEIVED :', payload)
-
-            let numberOfChannels: number[] = []
             if (window.mixerProtocol) {
-                window.mixerProtocol.channelTypes.forEach(
-                    (item: any, index: number) => {
-                        numberOfChannels.push(
-                            payload.settings[0].numberOfChannelsInType[index]
-                        )
+                let numberOfChannels: InumberOfChannels[] = []
+                payload.channels[0].chConnection.forEach(
+                    (chConnection: IchConnection, mixerIndex: number) => {
+                        numberOfChannels.push({ numberOfTypeInCh: [] })
+                        numberOfChannels[mixerIndex].numberOfTypeInCh = [
+                            chConnection.channel.length,
+                        ]
                     }
                 )
-                window.storeRedux.dispatch({
-                    type: SET_COMPLETE_CH_STATE,
-                    allState: payload.channels[0],
-                    numberOfTypeChannels: numberOfChannels,
-                })
-                window.storeRedux.dispatch({
-                    type: SET_COMPLETE_FADER_STATE,
-                    allState: payload.faders[0],
-                    numberOfTypeChannels: payload.settings[0].numberOfFaders,
-                })
-                window.storeRedux.dispatch({
-                    type: SET_MIXER_ONLINE,
-                    mixerOnline: payload.settings[0].mixerOnline,
-                })
-                window.storeRedux.dispatch({
-                    type: SET_SERVER_ONLINE,
-                    serverOnline: true,
-                })
+                window.storeRedux.dispatch(
+                    storeSetCompleteChState(
+                        payload.channels[0],
+                        numberOfChannels
+                    )
+                )
+                window.storeRedux.dispatch(
+                    storeSetCompleteFaderState(
+                        payload.faders[0],
+                        payload.settings[0].numberOfFaders
+                    )
+                )
+                window.storeRedux.dispatch(
+                    storeSetMixerOnline(
+                        payload.settings[0].mixers[0].mixerOnline
+                    )
+                )
+                window.storeRedux.dispatch(storeSetServerOnline(true))
             }
         })
         .on('set-settings', (payload: any) => {
             // console.log('SETTINGS RECEIVED :', payload)
-            window.storeRedux.dispatch({
-                type: UPDATE_SETTINGS,
-                settings: payload, // loadSettings(storeRedux.getState())
-            })
+            window.storeRedux.dispatch(storeUpdateSettings(payload))
         })
         .on('set-mixerprotocol', (payload: any) => {
             // console.log('MIXERPROTOCOL RECEIVED :', payload)
@@ -89,56 +91,17 @@ export const socketClientHandlers = () => {
             window.mixerProtocolList = payload.mixerProtocolList
         })
         .on(SOCKET_SET_MIXER_ONLINE, (payload: any) => {
-            window.storeRedux.dispatch({
-                type: SET_MIXER_ONLINE,
-                mixerOnline: payload.mixerOnline,
-            })
+            window.storeRedux.dispatch(storeSetMixerOnline(payload.mixerOnline))
         })
         .on(SOCKET_SET_STORE_FADER, (payload: any) => {
-            window.storeRedux.dispatch({
-                type: SET_SINGLE_FADER_STATE,
-                faderIndex: payload.faderIndex,
-                state: payload.state,
-            })
-        })
-        .on(SOCKET_SET_STORE_CHANNEL, (payload: any) => {
-            window.storeRedux.dispatch({
-                type: SET_SINGLE_CH_STATE,
-                channelIndex: payload.channelIndex,
-                state: payload.state,
-            })
-        })
-        .on(SOCKET_SET_ALL_VU, (payload: any) => {
-            payload.vuMeters.forEach((meterLevel: number, index: number) => {
-                window.storeRedux.dispatch({
-                    type: SET_VU_LEVEL,
-                    channel: index,
-                    level: meterLevel,
-                })
-            })
-            payload.vuReductionMeters.forEach(
-                (meterLevel: number, index: number) => {
-                    window.storeRedux.dispatch({
-                        type: SET_VU_REDUCTION_LEVEL,
-                        channel: index,
-                        level: meterLevel,
-                    })
-                }
+            window.storeRedux.dispatch(
+                storeSetSingleFaderState(payload.faderIndex, payload.state)
             )
         })
-        .on(SOCKET_SET_VU, (payload: any) => {
-            window.storeRedux.dispatch({
-                type: SET_VU_LEVEL,
-                channel: payload.faderIndex,
-                level: payload.level,
-            })
-        })
-        .on(SOCKET_SET_VU_REDUCTION, (payload: any) => {
-            window.storeRedux.dispatch({
-                type: SET_VU_REDUCTION_LEVEL,
-                channel: payload.faderIndex,
-                level: payload.level,
-            })
+        .on(SOCKET_SET_STORE_CHANNEL, (payload: any) => {
+            window.storeRedux.dispatch(
+                storeSetSingleChState(payload.channelIndex, payload.state)
+            )
         })
         .on(SOCKET_RETURN_SNAPSHOT_LIST, (payload: any) => {
             window.snapshotFileList = payload
@@ -150,6 +113,28 @@ export const socketClientHandlers = () => {
             window.mixerPresetList = payload
         })
         .on(SOCKET_RETURN_PAGES_LIST, (payload: any) => {
-            window.customPagesList = payload
+            window.storeRedux.dispatch(storeUpdatePagesList(payload))
         })
+        .on(
+            VuType.Channel,
+            (faderIndex: number, channelIndex: number, level: number) => {
+                if (!vuMeters[faderIndex]) vuMeters[faderIndex] = []
+                vuMeters[faderIndex][channelIndex] = level
+            }
+        )
+        .on(
+            VuType.Reduction,
+            (faderIndex: number, channelIndex: number, level: number) => {
+                if (
+                    window.reduxState.settings[0].showChanStrip ===
+                        faderIndex ||
+                    window.reduxState.settings[0].showChanStripFull ===
+                        faderIndex
+                ) {
+                    window.storeRedux.dispatch(
+                        storeVuReductionLevel(faderIndex, level)
+                    )
+                }
+            }
+        )
 }

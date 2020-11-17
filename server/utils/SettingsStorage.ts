@@ -1,12 +1,15 @@
 // Node Modules:
 const fs = require('fs')
 const path = require('path')
-import { store, state } from '../reducers/store'
+import { store } from '../reducers/store'
 
 // Redux:
-import { SET_COMPLETE_CH_STATE } from '../reducers/channelActions'
-import { SET_COMPLETE_FADER_STATE } from '../reducers/faderActions'
+import { storeSetCompleteChState } from '../reducers/channelActions'
+import { storeSetCompleteFaderState } from '../reducers/faderActions'
 import { logger } from './logger'
+import { InumberOfChannels } from '../reducers/channelsReducer'
+import { IFaders } from '../reducers/fadersReducer'
+import { ICustomPages } from '../reducers/settingsReducer'
 
 export const loadSettings = (storeRedux: any) => {
     let settingsInterface = storeRedux.settings[0]
@@ -41,7 +44,7 @@ export const saveSettings = (settings: any) => {
 export const loadSnapshotState = (
     stateSnapshot: any,
     stateChannelSnapshot: any,
-    numberOfChannels: Array<number>,
+    numberOfChannels: InumberOfChannels[],
     numberOfFaders: number,
     fileName: string,
     loadAll: boolean
@@ -50,16 +53,18 @@ export const loadSnapshotState = (
         const stateFromFile = JSON.parse(fs.readFileSync(fileName))
 
         if (loadAll) {
-            store.dispatch({
-                type: SET_COMPLETE_CH_STATE,
-                allState: stateFromFile.channelState,
-                numberOfTypeChannels: numberOfChannels,
-            })
-            store.dispatch({
-                type: SET_COMPLETE_FADER_STATE,
-                allState: stateFromFile.faderState,
-                numberOfTypeChannels: numberOfFaders,
-            })
+            store.dispatch(
+                storeSetCompleteChState(
+                    stateFromFile.channelState,
+                    numberOfChannels
+                )
+            )
+            store.dispatch(
+                storeSetCompleteFaderState(
+                    stateFromFile.faderState as IFaders,
+                    numberOfFaders
+                )
+            )
         } else {
             stateChannelSnapshot.channel = stateChannelSnapshot.channel.map(
                 (channel: any, index: number) => {
@@ -88,16 +93,12 @@ export const loadSnapshotState = (
                     return fader
                 }
             )
-            store.dispatch({
-                type: SET_COMPLETE_CH_STATE,
-                allState: stateChannelSnapshot,
-                numberOfTypeChannels: numberOfChannels,
-            })
-            store.dispatch({
-                type: SET_COMPLETE_FADER_STATE,
-                allState: stateSnapshot,
-                numberOfTypeChannels: numberOfFaders,
-            })
+            store.dispatch(
+                storeSetCompleteChState(stateChannelSnapshot, numberOfChannels)
+            )
+            store.dispatch(
+                storeSetCompleteFaderState(stateSnapshot, numberOfFaders)
+            )
         }
     } catch (error) {
         logger.error('Error loading Snapshot' + String(error), {})
@@ -181,13 +182,27 @@ export const setCcgDefault = (fileName: string) => {
     })
 }
 
-export const getCustomPages = (): object | undefined => {
+export const getCustomPages = (): ICustomPages[] => {
     try {
         return JSON.parse(
             fs.readFileSync(path.resolve('storage', 'pages.json'))
         )
     } catch (error) {
         logger.error('Couldn´t read pages.json file', {})
-        return
+        return []
     }
+}
+
+export const saveCustomPages = (
+    stateCustomPages: any,
+    fileName: string = 'pages.json'
+) => {
+    let json = JSON.stringify(stateCustomPages)
+    fs.writeFile(path.join('storage', fileName), json, 'utf8', (error: any) => {
+        if (error) {
+            logger.error('Error saving pages file' + String(error), {})
+        } else {
+            logger.info('Pages ' + fileName + ' Saved to storage folder', {})
+        }
+    })
 }

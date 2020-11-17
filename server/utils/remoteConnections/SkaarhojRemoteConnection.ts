@@ -3,7 +3,7 @@ const net = require('net')
 import { store, state } from '../../reducers/store'
 import { mixerGenericConnection } from '../../mainClasses'
 
-import { SET_FADER_LEVEL } from '../../reducers/faderActions'
+import { storeFaderLevel } from '../../reducers/faderActions'
 
 //Utils:
 import {
@@ -12,7 +12,7 @@ import {
 } from '../../constants/remoteProtocols/SkaarhojProtocol'
 import { MixerProtocolPresets } from '../../constants/MixerProtocolPresets'
 import { logger } from '../logger'
-import { SET_AUX_LEVEL } from '../../reducers/channelActions'
+import { storeSetAuxLevel } from '../../reducers/channelActions'
 
 export class SkaarhojRemoteConnection {
     store: any
@@ -25,7 +25,7 @@ export class SkaarhojRemoteConnection {
 
         this.remoteProtocol = RemoteFaderPresets.rawPanel
         this.mixerProtocol =
-            MixerProtocolPresets[state.settings[0].mixerProtocol] ||
+            MixerProtocolPresets[state.settings[0].mixers[0].mixerProtocol] ||
             MixerProtocolPresets.genericMidi
         this.clientList = []
 
@@ -122,11 +122,7 @@ export class SkaarhojRemoteConnection {
             console.log(
                 'Received Fader ' + (channelIndex + 1) + ' Level : ' + level
             )
-            store.dispatch({
-                type: SET_FADER_LEVEL,
-                channel: channelIndex,
-                level: level,
-            })
+            store.dispatch(storeFaderLevel(channelIndex, level))
             mixerGenericConnection.updateOutLevel(channelIndex)
             global.mainThreadHandler.updatePartialStore(channelIndex)
             this.updateRemoteFaderState(channelIndex, level)
@@ -149,7 +145,7 @@ export class SkaarhojRemoteConnection {
         }
         let chIndex = 0
         let btnIndex = 1
-        state.channels[0].channel.forEach((ch: any, index) => {
+        state.channels[0].chConnection[0].channel.forEach((ch: any, index) => {
             if (ch.auxLevel[auxSendIndex] >= 0) {
                 if (btnIndex === auxBtnNumber) {
                     chIndex = index
@@ -161,7 +157,10 @@ export class SkaarhojRemoteConnection {
         })
 
         let event = command.slice(command.indexOf('=') + 1)
-        let level = state.channels[0].channel[chIndex].auxLevel[auxSendIndex]
+        let level =
+            state.channels[0].chConnection[0].channel[chIndex].auxLevel[
+                auxSendIndex
+            ]
         if (event === 'Enc:1') {
             level += 0.01
             if (level > 1) {
@@ -192,12 +191,7 @@ export class SkaarhojRemoteConnection {
                 ' Level : ' +
                 level
         )
-        store.dispatch({
-            type: SET_AUX_LEVEL,
-            channel: chIndex,
-            auxIndex: auxSendIndex,
-            level: level,
-        })
+        store.dispatch(storeSetAuxLevel(0, chIndex, auxSendIndex, level))
         mixerGenericConnection.updateAuxLevel(chIndex, auxSendIndex + 1)
         global.mainThreadHandler.updateFullClientStore()
         this.updateRemoteAuxPanel(panelNumber)
@@ -236,29 +230,33 @@ export class SkaarhojRemoteConnection {
             return
         }
         let hwButton = panelNumber * 10 + 70 + 1
-        state.channels[0].channel.forEach((ch: any, index: number) => {
-            if (
-                ch.auxLevel[auxSendIndex] >= 0 &&
-                hwButton <= panelNumber * 10 + 70 + 9
-            ) {
-                let formatLevel = (ch.auxLevel[auxSendIndex] * 100).toFixed()
-                let formatLabel =
-                    state.faders[0].fader[ch.assignedFader].label ||
-                    'CH' + String(index + 1)
-                let formattetString =
-                    'HWCt#' +
-                    String(hwButton) +
-                    '=' +
-                    formatLevel +
-                    '|||||' +
-                    formatLabel +
-                    '\n'
-                hwButton++
-                this.clientList.forEach((client) => {
-                    client.write(formattetString)
-                })
+        state.channels[0].chConnection[0].channel.forEach(
+            (ch: any, index: number) => {
+                if (
+                    ch.auxLevel[auxSendIndex] >= 0 &&
+                    hwButton <= panelNumber * 10 + 70 + 9
+                ) {
+                    let formatLevel = (
+                        ch.auxLevel[auxSendIndex] * 100
+                    ).toFixed()
+                    let formatLabel =
+                        state.faders[0].fader[ch.assignedFader].label ||
+                        'CH' + String(index + 1)
+                    let formattetString =
+                        'HWCt#' +
+                        String(hwButton) +
+                        '=' +
+                        formatLevel +
+                        '|||||' +
+                        formatLabel +
+                        '\n'
+                    hwButton++
+                    this.clientList.forEach((client) => {
+                        client.write(formattetString)
+                    })
+                }
             }
-        })
+        )
     }
 
     updateRemotePgmPstPfl(channelIndex: number) {

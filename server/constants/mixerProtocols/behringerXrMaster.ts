@@ -1,4 +1,8 @@
-import { IMixerProtocol, emptyMixerMessage } from '../MixerProtocolInterface'
+import {
+    IMixerProtocol,
+    emptyMixerMessage,
+    fxParamsList,
+} from '../MixerProtocolInterface'
 
 export const BehringerXrMaster: IMixerProtocol = {
     protocol: 'OSC',
@@ -85,41 +89,6 @@ export const BehringerXrMaster: IMixerProtocol = {
                 ],
                 PFL: [emptyMixerMessage()],
                 NEXT_SEND: [emptyMixerMessage()],
-                THRESHOLD: [
-                    {
-                        mixerMessage: '/ch/{channel}/dyn/thr',
-                    },
-                ],
-                RATIO: [
-                    {
-                        mixerMessage: '/ch/{channel}/dyn/ratio',
-                    },
-                ],
-                DELAY_TIME: [
-                    {
-                        mixerMessage: '/ch/{channel}/delay/time',
-                    },
-                ],
-                LOW: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/1/g',
-                    },
-                ],
-                LO_MID: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/2/g',
-                    },
-                ],
-                MID: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/3/g',
-                    },
-                ],
-                HIGH: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/4/g',
-                    },
-                ],
                 AUX_LEVEL: [
                     {
                         mixerMessage: '/ch/{channel}/mix/{argument}/level',
@@ -147,41 +116,6 @@ export const BehringerXrMaster: IMixerProtocol = {
                 PFL_ON: [emptyMixerMessage()],
                 PFL_OFF: [emptyMixerMessage()],
                 NEXT_SEND: [emptyMixerMessage()],
-                THRESHOLD: [
-                    {
-                        mixerMessage: '/ch/{channel}/dyn/thr',
-                    },
-                ],
-                RATIO: [
-                    {
-                        mixerMessage: '/ch/{channel}/dyn/ratio',
-                    },
-                ],
-                DELAY_TIME: [
-                    {
-                        mixerMessage: '/ch/{channel}/delay/time',
-                    },
-                ],
-                LOW: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/1/g',
-                    },
-                ],
-                LO_MID: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/2/g',
-                    },
-                ],
-                MID: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/3/g',
-                    },
-                ],
-                HIGH: [
-                    {
-                        mixerMessage: '/ch/{channel}/eq/4/g',
-                    },
-                ],
                 AUX_LEVEL: [
                     {
                         mixerMessage: '/ch/{channel}/mix/{argument}/level',
