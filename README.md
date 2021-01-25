@@ -18,8 +18,17 @@ It´s fast to see what faders are on-aie, and whether they are PGM level or Voic
 ### These are the functions on the channelstrip:
 
 (You open the channelstrip by clicking on the channel label)
+The features on the channelstrip depends on the Mixer Protocol.
 
 <img src="Docs/pix/SisyfosChannelStripdescription.jpg">
+
+### Full Channelstrip:
+
+(You open the channelstrip by clicking on the "Full Ch.Strip" in the normal channelstrip)
+
+The Advanced channelstrip has all the features the seleced Mixer Protol supports. (Example: Midas M32)
+
+<img src="Docs/pix/AdvancedChannelStrip.png">
 
 ### If you need a MiniMonitorView for a client:
 
@@ -118,11 +127,17 @@ As NEXT has been implemented, and PFL usually only work on on channel at a time,
 ### Following preset name are possible:
 
 -   CasparCG
-
     -   use storage/default-casparcg.ccg as template and place you own file in storage folder.
     -   base your casparcg.config by the casparcg.config file in the same folder
-    -   remember to active OSC in the casparcg.config file to it points to Sisyfos
-
+    -   remember to activate OSC in the casparcg.config file to it points to Sisyfos
+-   Midas Master
+    -   OSC protocol for Midas M32 and Behringer X32
+    -   Port 10023
+    -   Mixer preset loading (using .x32 files in storage folder)
+    -   Protocol supports:
+        -   Eq, Comp, Delay, Mix minus
+-   Lawo Mc2
+    -   Ember Protocol
 -   reaper
     -   OSC protocol for control Reaper (reaper.fm)
 -   Ardour Master
@@ -130,16 +145,11 @@ As NEXT has been implemented, and PFL usually only work on on channel at a time,
     -   Port 3819
     -   The volume change in Ardour is on it´s channel faders.
     -   Todo:
-        -   Group support
         -   Meter calibration
 -   SSL System T - Broadcast Mixer
     -   SSL Automation Protocol for System T
     -   Port 10001
     -   Set Protocol Latency to around 120ms
--   Midas Master
-    -   OSC protocol for Midas M32 and Behringer X32
-    -   Port 10023
-    -   Mixer preset loading (using .x32 files in storage folder)
 -   Behringer xr master
     -   OSC protocol for Behringer XR12,16,18
     -   Port 10024
