@@ -1,10 +1,8 @@
-import * as DEFAULTS from '../constants/DEFAULTS'
 import { MixerProtocolPresets } from '../constants/MixerProtocolPresets'
 import {
     TOGGLE_SHOW_CHAN_STRIP,
     TOGGLE_SHOW_OPTION,
     TOGGLE_SHOW_SETTINGS,
-    TOGGLE_SHOW_SNAPS,
     TOGGLE_SHOW_STORAGE,
     UPDATE_SETTINGS,
     SET_MIXER_ONLINE,
@@ -14,6 +12,7 @@ import {
     TOGGLE_SHOW_PAGES_SETUP,
     SET_PAGES_LIST,
     TOGGLE_SHOW_CHAN_STRIP_FULL,
+    TOGGLE_SHOW_LABEL_SETTINGS,
 } from '../reducers/settingsActions'
 
 export enum PageType {
@@ -22,10 +21,13 @@ export enum PageType {
 }
 
 export interface ISettings {
+    /* Sisyfos Settings Version: */
+    sisyfosVersion?: string
+
     /** UI state (non persistant) */
-    showSnaps: boolean
     showSettings: boolean
     showPagesSetup: boolean
+    showLabelSettings: boolean
     showChanStrip: number
     showChanStripFull: number
     showOptions: number | false
@@ -45,7 +47,6 @@ export interface ISettings {
     remoteFaderMidiInputPort: string
     remoteFaderMidiOutputPort: string
     numberOfFaders: number
-    numberOfSnaps: number
     fadeTime: number // Default fade time for PGM ON - OFF
     voFadeTime: number // Default fade time for VO ON - OFF
     voLevel: number // Relative level of PGM in %
@@ -56,6 +57,7 @@ export interface ISettings {
     enablePages: boolean
     numberOfCustomPages: number
     chanStripFollowsPFL: boolean
+    labelType: 'automatic' | 'user' | 'automation' | 'channel'
 
     /** Connection state */
     serverOnline: boolean
@@ -84,9 +86,9 @@ export interface IMixerSettings {
 
 const defaultSettingsReducerState: Array<ISettings> = [
     {
-        showSnaps: false,
         showSettings: false,
         showPagesSetup: false,
+        showLabelSettings: false,
         showChanStrip: -1,
         showChanStripFull: -1,
         showOptions: false,
@@ -115,7 +117,6 @@ const defaultSettingsReducerState: Array<ISettings> = [
         remoteFaderMidiInputPort: '',
         remoteFaderMidiOutputPort: '',
         numberOfFaders: 8,
-        numberOfSnaps: DEFAULTS.NUMBER_OF_SNAPS,
         voLevel: 30,
         autoResetLevel: 5,
         automationMode: true,
@@ -127,6 +128,7 @@ const defaultSettingsReducerState: Array<ISettings> = [
         numberOfCustomPages: 4,
         chanStripFollowsPFL: true,
         serverOnline: true,
+        labelType: 'automatic',
     },
 ]
 
@@ -142,6 +144,9 @@ export const settings = (
             return nextState
         case TOGGLE_SHOW_PAGES_SETUP:
             nextState[0].showPagesSetup = !nextState[0].showPagesSetup
+            return nextState
+        case TOGGLE_SHOW_LABEL_SETTINGS:
+            nextState[0].showLabelSettings = !nextState[0].showLabelSettings
             return nextState
         case TOGGLE_SHOW_CHAN_STRIP:
             if (nextState[0].showChanStrip !== action.channel) {
@@ -172,9 +177,6 @@ export const settings = (
             return nextState
         case TOGGLE_SHOW_STORAGE:
             nextState[0].showStorage = !nextState[0].showStorage
-            return nextState
-        case TOGGLE_SHOW_SNAPS:
-            nextState[0].showSnaps = !nextState[0].showSnaps
             return nextState
         case SET_PAGE:
             nextState[0].currentPage = {

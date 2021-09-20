@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
-//@ts-ignore
-import * as ClassNames from 'classnames'
+import ClassNames from 'classnames'
 
 import Channel from './Channel'
 import '../assets/css/Channels.css'
 import { Store } from 'redux'
 import {
     storeSetPage,
+    storeShowLabelSetup,
     storeShowPagesSetup,
     storeShowSettings,
     storeShowStorage,
@@ -98,6 +98,10 @@ class Channels extends React.Component<IChannelsInjectProps & Store> {
 
     handleShowPagesSetting() {
         this.props.dispatch(storeShowPagesSetup())
+    }
+
+    handleShowLabelSetting() {
+        this.props.dispatch(storeShowLabelSetup())
     }
 
     handlePages(type: PageType, i: number | string) {
@@ -273,9 +277,7 @@ class Channels extends React.Component<IChannelsInjectProps & Store> {
                             </button>
                         )}
 
-                        {window.location.search.includes(
-                            'settings=0'
-                        ) ? null : (
+                        {window.location.search.includes('settings=1') ? (
                             <button
                                 className="button half channels-show-settings-button"
                                 onClick={() => {
@@ -284,7 +286,7 @@ class Channels extends React.Component<IChannelsInjectProps & Store> {
                             >
                                 SETTINGS
                             </button>
-                        )}
+                        ) : null}
 
                         <button
                             className="button half channels-show-storage-button"
@@ -295,9 +297,7 @@ class Channels extends React.Component<IChannelsInjectProps & Store> {
                             STORAGE
                         </button>
 
-                        {window.location.search.includes(
-                            'settings=0'
-                        ) ? null : (
+                        {window.location.search.includes('settings=1') ? (
                             <button
                                 className="button half channels-show-settings-button"
                                 onClick={() => {
@@ -306,7 +306,18 @@ class Channels extends React.Component<IChannelsInjectProps & Store> {
                             >
                                 PAGES SETUP
                             </button>
-                        )}
+                        ) : null}
+
+                        {window.location.search.includes('settings=1') ? (
+                            <button
+                                className="button half channels-show-settings-button"
+                                onClick={() => {
+                                    this.handleShowLabelSetting()
+                                }}
+                            >
+                                LABELS
+                            </button>
+                        ) : null}
                     </div>
                     <div className="mid">
                         {this.renderAllManualButton()}
@@ -340,7 +351,7 @@ class Channels extends React.Component<IChannelsInjectProps & Store> {
 
 const mapStateToProps = (state: any): IChannelsInjectProps => {
     return {
-        channels: state.channels[0].chConnection[0].channel,
+        channels: state.channels[0].chMixerConnection[0].channel,
         faders: state.faders[0].fader,
         customPages: state.settings[0].customPages,
         settings: state.settings[0],

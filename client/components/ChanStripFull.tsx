@@ -21,7 +21,7 @@ import ReductionMeter from './ReductionMeter'
 import ClassNames from 'classnames'
 import { fxParamsList } from '../../server/constants/MixerProtocolInterface'
 import { IChannel } from '../../server/reducers/channelsReducer'
-import { storeFaderFx } from '../../server/reducers/faderActions'
+import { getFaderLabel } from '../utils/labels'
 
 interface IChanStripFullInjectProps {
     label: string
@@ -505,7 +505,8 @@ class ChanStripFull extends React.PureComponent<
                                     )
                                 }}
                             >
-                                +{value}ms
+                                {value > 0 ? '+' : ''}
+                                {value}ms
                             </button>
                         )
                     })}
@@ -527,12 +528,18 @@ class ChanStripFull extends React.PureComponent<
             <div className="parameter-text">
                 <div className="parameter-mini-text">
                     {Math.round(
-                        (maxLabel - minLabel) *
-                            this.props.fader[this.props.faderIndex][
-                                fxParam
-                            ]?.[0] +
-                            minLabel
-                    )}
+                        ((maxLabel - minLabel) *
+                            (1 -
+                                Math.pow(
+                                    1 -
+                                        this.props.fader[this.props.faderIndex][
+                                            fxParam
+                                        ]?.[0],
+                                    3
+                                )) +
+                            minLabel) *
+                            10
+                    ) / 10}
                     {valueLabel}
                 </div>
                 <ReactSlider
@@ -541,6 +548,7 @@ class ChanStripFull extends React.PureComponent<
                     orientation="horisontal"
                     min={0}
                     max={1}
+                    invert="true"
                     step={0.01}
                     value={
                         this.props.fader[this.props.faderIndex][fxParam]?.[0]
@@ -548,10 +556,15 @@ class ChanStripFull extends React.PureComponent<
                     renderThumb={(props: any, state: any) => (
                         <div {...props}>
                             {Math.round(
-                                (maxLabel - minLabel) *
-                                    parseFloat(state.valueNow) +
-                                    minLabel
-                            )}
+                                ((maxLabel - minLabel) *
+                                    (1 -
+                                        Math.pow(
+                                            1 - parseFloat(state.valueNow),
+                                            3
+                                        )) +
+                                    minLabel) *
+                                    10
+                            ) / 10}
                             {valueLabel}
                         </div>
                     )}
@@ -590,10 +603,10 @@ class ChanStripFull extends React.PureComponent<
                     className="chan-strip-full-fader"
                     thumbClassName="chan-strip-full-thumb"
                     orientation="vertical"
-                    invert
                     min={0}
                     max={1}
-                    step={0.01}
+                    step={0.001}
+                    invert="false"
                     value={
                         this.props.fader[this.props.faderIndex][fxParam]?.[0] ??
                         0
@@ -622,14 +635,7 @@ class ChanStripFull extends React.PureComponent<
     monitor(channelIndex: number) {
         let faderIndex = this.props.channel[channelIndex].assignedFader
         if (faderIndex === -1) return null
-        let monitorName = this.props.fader[faderIndex]
-            ? this.props.fader[faderIndex].label
-            : ''
-        if (monitorName === '') {
-            monitorName =
-                'Fader ' +
-                String(this.props.channel[channelIndex].assignedFader + 1)
-        }
+        let monitorName = getFaderLabel(faderIndex, 'Fader')
         return (
             <li key={channelIndex}>
                 {monitorName}
@@ -681,6 +687,18 @@ class ChanStripFull extends React.PureComponent<
                             </React.Fragment>
                         )}
                         <React.Fragment>
+                            {this.doesParamExists(fxParamsList.GainTrim) ? (
+                                <div className="item">
+                                    <div className="title">INPUT</div>
+                                    <div className="content">
+                                        {this.fxParamFader(
+                                            fxParamsList.GainTrim
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <React.Fragment></React.Fragment>
+                            )}
                             {this.doesParamExists(fxParamsList.CompThrs) ? (
                                 <div className="item">
                                     <div className="title">COMPRESSOR</div>
@@ -727,8 +745,7 @@ class ChanStripFull extends React.PureComponent<
                             )}
                             <div className="item">
                                 <div className="title">
-                                    {this.props.label ||
-                                        'FADER ' + (this.props.faderIndex + 1)}
+                                    {this.props.label}
                                     {' - MONITOR MIX MINUS'}
                                 </div>
                                 <div className="content">
@@ -769,8 +786,7 @@ class ChanStripFull extends React.PureComponent<
             return (
                 <div className="chan-strip-full-body">
                     <div className="ch-strip-full-header">
-                        {this.props.label ||
-                            'FADER ' + (this.props.faderIndex + 1)}
+                        {this.props.label}
                         <button
                             className="close"
                             onClick={() => this.handleClose()}
@@ -778,25 +794,25 @@ class ChanStripFull extends React.PureComponent<
                             X
                         </button>
                         {window.location.search.includes(
-                            'settings=0'
-                        ) ? null : (
+                            'settings=1'
+                        ) ? (
                             <button
                                 className="button half"
                                 onClick={() => this.handleShowRoutingOptions()}
                             >
                                 Channel-Fader Routing
                             </button>
-                        )}
+                        ) : null}
                         {window.location.search.includes(
-                            'settings=0'
-                        ) ? null : (
+                            'settings=1'
+                        ) ?  (
                             <button
                                 className="button half"
                                 onClick={() => this.handleShowMonitorOptions()}
                             >
                                 Monitor Routing
                             </button>
-                        )}
+                        ) : null}
                     </div>
                     <hr />
                     {this.parameters()}
@@ -814,18 +830,18 @@ const mapStateToProps = (state: any, props: any): IChanStripFullInjectProps => {
         selectedProtocol: state.settings[0].mixers[0].mixerProtocol,
         numberOfChannelsInType:
             state.settings[0].mixers[0].numberOfChannelsInType,
-        channel: state.channels[0].chConnection[0].channel,
+        channel: state.channels[0].chMixerConnection[0].channel,
         fader: state.faders[0].fader,
         auxSendIndex: -1,
         offtubeMode: state.settings[0].offtubeMode,
     }
     if (props.faderIndex >= 0) {
         inject = {
-            label: state.faders[0].fader[props.faderIndex].label,
+            label: getFaderLabel(props.faderIndex, 'FADER'),
             selectedProtocol: state.settings[0].mixers[0].mixerProtocol,
             numberOfChannelsInType:
                 state.settings[0].mixers[0].numberOfChannelsInType,
-            channel: state.channels[0].chConnection[0].channel,
+            channel: state.channels[0].chMixerConnection[0].channel,
             fader: state.faders[0].fader,
             auxSendIndex: state.faders[0].fader[props.faderIndex].monitor - 1,
             offtubeMode: state.settings[0].offtubeMode,

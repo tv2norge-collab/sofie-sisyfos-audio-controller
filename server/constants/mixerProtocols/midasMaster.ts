@@ -1,8 +1,4 @@
-import {
-    IMixerProtocol,
-    emptyMixerMessage,
-    fxParamsList,
-} from '../MixerProtocolInterface'
+import { IMixerProtocol, fxParamsList } from '../MixerProtocolInterface'
 
 export const MidasMaster: IMixerProtocol = {
     protocol: 'OSC',
@@ -37,6 +33,9 @@ export const MidasMaster: IMixerProtocol = {
         {
             mixerMessage: '/ch/{channel}/mix/{argument}/level',
             type: 'aux',
+        },
+        {
+            mixerMessage: '/ch/{channel}/preamp/trim',
         },
         {
             mixerMessage: '/ch/{channel}/dyn/thr',
@@ -126,10 +125,15 @@ export const MidasMaster: IMixerProtocol = {
                         mixerMessage: '/meters/1',
                     },
                 ],
-                CHANNEL_VU_REDUCTION: [emptyMixerMessage()], // Gain reduction is return toghter with CHANNEL_VU response
-                CHANNEL_NAME: [emptyMixerMessage()], //[{ mixerMessage: '/ch/{channel}/config/name', value: 0, type: 'f', min: 0, max: 1, zero: 0.75}],
-                PFL: [emptyMixerMessage()],
-                NEXT_SEND: [emptyMixerMessage()],
+                [fxParamsList.GainTrim]: [
+                    {
+                        mixerMessage: '/ch/{channel}/preamp/trim',
+                        minLabel: -18,
+                        maxLabel: 18,
+                        label: 'Gain Trim',
+                        valueLabel: ' dB',
+                    },
+                ],
                 [fxParamsList.CompThrs]: [
                     {
                         mixerMessage: '/ch/{channel}/dyn/thr',
@@ -277,8 +281,8 @@ export const MidasMaster: IMixerProtocol = {
                 [fxParamsList.EqQ01]: [
                     {
                         mixerMessage: '/ch/{channel}/eq/1/q',
-                        minLabel: 0.3,
-                        maxLabel: 10,
+                        minLabel: 10,
+                        maxLabel: 0.3,
                         label: 'Low Q',
                         valueLabel: ' Q',
                     },
@@ -286,8 +290,8 @@ export const MidasMaster: IMixerProtocol = {
                 [fxParamsList.EqQ02]: [
                     {
                         mixerMessage: '/ch/{channel}/eq/2/q',
-                        minLabel: 0.3,
-                        maxLabel: 10,
+                        minLabel: 10,
+                        maxLabel: 0.3,
                         label: 'LoMid Q',
                         valueLabel: ' Q',
                     },
@@ -295,8 +299,8 @@ export const MidasMaster: IMixerProtocol = {
                 [fxParamsList.EqQ03]: [
                     {
                         mixerMessage: '/ch/{channel}/eq/3/q',
-                        minLabel: 0.3,
-                        maxLabel: 10,
+                        minLabel: 10,
+                        maxLabel: 0.3,
                         label: 'HiMid Q',
                         valueLabel: ' Q',
                     },
@@ -304,8 +308,8 @@ export const MidasMaster: IMixerProtocol = {
                 [fxParamsList.EqQ04]: [
                     {
                         mixerMessage: '/ch/{channel}/eq/4/q',
-                        minLabel: 0.3,
-                        maxLabel: 10,
+                        minLabel: 10,
+                        maxLabel: 0.3,
                         label: 'High Q',
                         valueLabel: ' Q',
                     },
@@ -320,8 +324,6 @@ export const MidasMaster: IMixerProtocol = {
                         mixerMessage: '/ch/{channel}/mix/on',
                     },
                 ],
-                // Only MUTE_ON is used as receiver
-                CHANNEL_MUTE_OFF: [emptyMixerMessage()],
             },
             toMixer: {
                 CHANNEL_OUT_GAIN: [
@@ -329,10 +331,15 @@ export const MidasMaster: IMixerProtocol = {
                         mixerMessage: '/ch/{channel}/mix/fader',
                     },
                 ],
-                CHANNEL_NAME: [emptyMixerMessage()], //[{ mixerMessage: '/ch/{channel}/config/name', value: 0, type: 'f', min: 0, max: 1, zero: 0.75}],
-                PFL_ON: [emptyMixerMessage()],
-                PFL_OFF: [emptyMixerMessage()],
-                NEXT_SEND: [emptyMixerMessage()],
+                [fxParamsList.GainTrim]: [
+                    {
+                        mixerMessage: '/ch/{channel}/preamp/trim',
+                        minLabel: -18,
+                        maxLabel: 18,
+                        label: 'Gain Trim',
+                        valueLabel: ' dB',
+                    },
+                ],
                 [fxParamsList.CompThrs]: [
                     {
                         mixerMessage: '/ch/{channel}/dyn/thr',

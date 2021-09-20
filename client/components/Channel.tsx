@@ -1,6 +1,5 @@
 import * as React from 'react'
-//@ts-ignore
-import * as ClassNames from 'classnames'
+import ClassNames from 'classnames'
 import { connect } from 'react-redux'
 import VuMeter from './VuMeter'
 import { Store, compose } from 'redux'
@@ -19,12 +18,13 @@ import {
     SOCKET_TOGGLE_IGNORE,
     SOCKET_TOGGLE_AMIX,
 } from '../../server/constants/SOCKET_IO_DISPATCHERS'
-import { IFader } from '../../server/reducers/fadersReducer'
+import { IChannelReference, IFader } from '../../server/reducers/fadersReducer'
 import { ISettings } from '../../server/reducers/settingsReducer'
 import { storeShowChanStrip } from '../../server/reducers/settingsActions'
 import { withTranslation } from 'react-i18next'
 import { VuLabelConversionType } from '../../server/constants/MixerProtocolInterface'
 import { Conversions } from '../../server/utils/dbConversion'
+import { getFaderLabel } from '../utils/labels'
 
 interface IChannelInjectProps {
     t: any
@@ -32,6 +32,7 @@ interface IChannelInjectProps {
     settings: ISettings
     channelType: number
     channelTypeIndex: number
+    label: string
 }
 
 interface IChannelProps {
@@ -66,10 +67,9 @@ class Channel extends React.Component<
                 this.props.fader.ignoreAutomation ||
             nextProps.fader.showChannel != this.props.fader.showChannel ||
             nextProps.fader.faderLevel != this.props.fader.faderLevel ||
-            nextProps.fader.label != this.props.fader.label ||
+            nextProps.label != this.props.label ||
             nextProps.settings.mixers[0].mixerProtocol !=
                 this.props.settings.mixers[0].mixerProtocol ||
-            nextProps.settings.showSnaps != this.props.settings.showSnaps ||
             nextProps.settings.showPfl != this.props.settings.showPfl ||
             nextProps.settings.showChanStrip !=
                 this.props.settings.showChanStrip ||
@@ -133,6 +133,38 @@ class Channel extends React.Component<
 
     handleShowChanStrip() {
         this.props.dispatch(storeShowChanStrip(this.faderIndex))
+    }
+
+    handleVuMeter() {
+        if (window.mixerProtocol.protocol === 'CasparCG' || window.mixerProtocol.protocol === 'VMIX') {
+            return (
+                <React.Fragment>
+                    {!window.location.search.includes('vu=0') &&
+                        window.mixerProtocol.channelTypes[0].fromMixer.CHANNEL_VU?.map(
+                            (_, i) => (
+                                <VuMeter
+                                    faderIndex={this.faderIndex}
+                                    channel={i}
+                                />
+                            )
+                        )}{' '}
+                </React.Fragment>
+            )
+        } else {
+            let assignedChannels: IChannelReference[] = this.props.fader
+                .assignedChannels || [{ mixerIndex: 0, channelIndex: 0 }]
+            return (
+                <React.Fragment>
+                    {!window.location.search.includes('vu=0') &&
+                        assignedChannels?.map((assigned: IChannelReference, index) => (
+                            <VuMeter
+                                faderIndex={this.faderIndex}
+                                channel={index}
+                            />
+                        ))}{' '}
+                </React.Fragment>
+            )
+        }
     }
 
     fader() {
@@ -221,9 +253,7 @@ class Channel extends React.Component<
                     this.handlePgm()
                 }}
             >
-                {this.props.fader.label != ''
-                    ? this.props.fader.label
-                    : 'CH ' + (this.faderIndex + 1)}
+                {this.props.label}
             </button>
         )
     }
@@ -285,9 +315,7 @@ class Channel extends React.Component<
                     this.handleShowChanStrip()
                 }}
             >
-                {this.props.fader.label != ''
-                    ? this.props.fader.label
-                    : 'CH ' + (this.faderIndex + 1)}
+                {this.props.label}
             </button>
         )
     }
@@ -398,15 +426,7 @@ class Channel extends React.Component<
                     {this.amixButton()}
                 </div>
                 <div className="fader">
-                    {!window.location.search.includes('vu=0') &&
-                        window.mixerProtocol.channelTypes[0].fromMixer.CHANNEL_VU?.map(
-                            (_, i) => (
-                                <VuMeter
-                                    faderIndex={this.faderIndex}
-                                    channel={i}
-                                />
-                            )
-                        )}
+                    {this.handleVuMeter()}
                     {this.fader()}
                 </div>
                 <div className="out-control">
@@ -440,6 +460,7 @@ const mapStateToProps = (state: any, props: any): IChannelInjectProps => {
         channelType: 0 /* TODO: state.channels[0].channel[props.channelIndex].channelType, */,
         channelTypeIndex:
             props.faderIndex /* TODO: state.channels[0].channel[props.channelIndex].channelTypeIndex, */,
+        label: getFaderLabel(props.faderIndex)
     }
 }
 

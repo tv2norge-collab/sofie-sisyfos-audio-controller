@@ -58,6 +58,9 @@ import {
     SOCKET_TOGGLE_ALL_MANUAL,
     SOCKET_SET_PAGES_LIST,
     SOCKET_SET_MIXER_ONLINE,
+    SOCKET_SET_LABELS,
+    SOCKET_GET_LABELS,
+    SOCKET_FLUSH_LABELS,
 } from './constants/SOCKET_IO_DISPATCHERS'
 import {
     storeFaderLevel,
@@ -76,8 +79,13 @@ import {
     storeToggleAMix,
     storeAllManual,
     storeInputSelector,
+    removeAllAssignedChannels,
+    storeSetAssignedChannel,
+    updateLabels,
+    flushExtLabels,
 } from './reducers/faderActions'
 import {
+    storeFlushChLabels,
     storeSetAssignedFader,
     storeSetAuxLevel,
 } from './reducers/channelActions'
@@ -98,30 +106,58 @@ export class MainThreadHandlers {
     }
 
     updateFullClientStore() {
+        this.recalcAssignedChannels()
         socketServer.emit(SOCKET_SET_FULL_STORE, state)
     }
 
     updatePartialStore(faderIndex: number) {
+        this.recalcAssignedChannels()
         socketServer.emit(SOCKET_SET_STORE_FADER, {
             faderIndex: faderIndex,
             state: state.faders[0].fader[faderIndex],
         })
-        state.channels[0].chConnection.forEach((chConnection) => {
-            chConnection.channel.forEach((channel: IChannel, index: number) => {
-                if (channel.assignedFader === faderIndex) {
-                    socketServer.emit(SOCKET_SET_STORE_CHANNEL, {
-                        channelIndex: index,
-                        state: channel,
-                    })
+        state.channels[0].chMixerConnection.forEach((chMixerConnection) => {
+            chMixerConnection.channel.forEach(
+                (channel: IChannel, index: number) => {
+                    if (channel.assignedFader === faderIndex) {
+                        socketServer.emit(SOCKET_SET_STORE_CHANNEL, {
+                            channelIndex: index,
+                            state: channel,
+                        })
+                    }
                 }
-            })
+            )
         })
     }
 
-    updateMixerOnline(mixerIndex: number) {
+    updateMixerOnline(mixerIndex: number, onLineState?: boolean) {
         socketServer.emit(SOCKET_SET_MIXER_ONLINE, {
             mixerIndex,
-            mixerOnline: state.settings[0].mixers[mixerIndex].mixerOnline,
+            mixerOnline:
+                onLineState ?? state.settings[0].mixers[mixerIndex].mixerOnline,
+        })
+    }
+
+    // Assigned channel to faders are right now based on Channel.assignedFader
+    // Plan is to change it so fader.assignedChannel will be the master (a lot of change in code is needed)
+    recalcAssignedChannels() {
+        store.dispatch(removeAllAssignedChannels())
+        state.channels[0].chMixerConnection.forEach((mixer, mixerIndex) => {
+            mixer.channel.forEach((channel: IChannel, channelIndex) => {
+                if (
+                    channel.assignedFader >= 0 &&
+                    state.faders[0].fader[channel.assignedFader]
+                ) {
+                    store.dispatch(
+                        storeSetAssignedChannel(
+                            channel.assignedFader,
+                            mixerIndex,
+                            channelIndex,
+                            true
+                        )
+                    )
+                }
+            })
         })
     }
 
@@ -162,7 +198,7 @@ export class MainThreadHandlers {
                 logger.info('Load Snapshot', {})
                 this.snapshotHandler.loadSnapshotSettings(
                     path.resolve('storage', payload),
-                    false
+                    true
                 )
                 this.updateFullClientStore()
             })
@@ -259,6 +295,7 @@ export class MainThreadHandlers {
                         payload.faderAssign
                     )
                 )
+
                 this.updateFullClientStore()
             })
             .on(SOCKET_SET_FADER_MONITOR, (payload: any) => {
@@ -424,6 +461,19 @@ export class MainThreadHandlers {
                 logger.verbose('Toggle manual mode for all')
                 store.dispatch(storeAllManual())
                 this.updateFullClientStore()
+            })
+            .on(SOCKET_SET_LABELS, (payload: any) => {
+                store.dispatch(updateLabels(payload.update))
+            })
+            .on(SOCKET_GET_LABELS, () => {
+                socketServer.emit(
+                    SOCKET_GET_LABELS,
+                    state.faders[0].fader.map((f) => f.userLabel)
+                )
+            })
+            .on(SOCKET_FLUSH_LABELS, () => {
+                store.dispatch(flushExtLabels())
+                store.dispatch(storeFlushChLabels())
             })
     }
 }

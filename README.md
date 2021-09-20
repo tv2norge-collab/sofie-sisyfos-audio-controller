@@ -1,5 +1,7 @@
 # Sisyfos Audio Controller
 
+[![Node CI](https://github.com/tv2/sisyfos-audio-controller/actions/workflows/deploy-image.yml/badge.svg)](https://github.com/tv2/sisyfos-audio-controller/actions/workflows/deploy-image.yml)
+
 ## Audiomixer control build for intelligent automation.
 
 You use the fader for the level, and PGM on/off for fade-in/out.
@@ -98,10 +100,10 @@ The levels are:
 localhost:1176 (or whatever ip you use for Sisyfos Nodejs/Docker)
 ```
 
-IF you wan´t to disable settings:
+#### Important - To enable settings:
 
 ```
-localhost:1176/?settings=0
+localhost:1176/?settings=1
 ```
 
 To see the MiniMonitorView:

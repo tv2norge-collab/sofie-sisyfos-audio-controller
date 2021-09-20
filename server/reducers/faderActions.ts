@@ -7,9 +7,12 @@ export const SET_SINGLE_FADER_STATE = 'SET_SINGLE_FADER_STATE'
 export const SET_FADER_LEVEL = 'SET_FADER_LEVEL'
 export const SET_INPUT_GAIN = 'SET_INPUT_GAIN'
 export const SET_INPUT_SELECTOR = 'SET_INPUT_SELECTOR'
-export const SET_CHANNEL_LABEL = 'SET_CHANNEL_LABEL'
+export const SET_FADER_LABEL = 'SET_FADER_LABEL'
+export const SET_USER_LABEL = 'SET_USER_LABEL'
 export const SET_FADER_FX = 'SET_FADER_FX'
 export const SET_FADER_MONITOR = 'SET_FADER_MONITOR'
+export const SET_ASSIGNED_CHANNEL = 'SET_ASSIGNED_CHANNEL'
+export const REMOVE_ALL_ASSIGNED_CHANNELS = 'REMOVE_ASSIGNED_CHANNELS'
 export const TOGGLE_PGM = 'TOGGLE_PGM'
 export const SET_PGM = 'SET_PGM'
 export const TOGGLE_VO = 'TOGGLE_VO'
@@ -28,6 +31,8 @@ export const X_MIX = 'X_MIX'
 export const NEXT_MIX = 'NEXT_MIX'
 export const FADE_TO_BLACK = 'FADE_TO_BLACK'
 
+export const UPDATE_LABEL_LIST = 'UPDATE_LABEL_LIST'
+export const FLUSH_FADER_LABELS = 'FLUSH_FADER_LABELS'
 export const CLEAR_PST = 'CLEAR_PST'
 export const SNAP_RECALL = 'SNAP_RECALL'
 export const SET_CHANNEL_DISABLED = 'SET_CHANNEL_DISABLED'
@@ -36,10 +41,10 @@ export const SET_AMIX = 'SET_AMIX'
 export const SET_CAPABILITY = 'SET_CAPABILITY'
 export const TOGGLE_ALL_MANUAL = 'TOGGLE_ALL_MANUAL'
 
-export const storeVuReductionLevel = (channel: number, level: number) => {
+export const storeVuReductionLevel = (faderIndex: number, level: number) => {
     return {
         type: SET_VU_REDUCTION_LEVEL,
-        channel: channel,
+        faderIndex: faderIndex,
         level: level,
     }
 }
@@ -63,146 +68,154 @@ export const storeSetSingleFaderState = (faderIndex: number, state: IFader) => {
     }
 }
 
-export const storeFaderLevel = (channel: number, level: number) => {
+export const storeFaderLevel = (faderIndex: number, level: number) => {
     return {
         type: SET_FADER_LEVEL,
-        channel: channel,
+        faderIndex: faderIndex,
         level: level,
     }
 }
 
-export const storeInputGain = (channel: number, level: number) => {
+export const storeInputGain = (faderIndex: number, level: number) => {
     return {
         type: SET_INPUT_GAIN,
-        channel: channel,
+        faderIndex: faderIndex,
         level: level,
     }
 }
 
-export const storeInputSelector = (channel: number, selected: number) => {
+export const storeInputSelector = (faderIndex: number, selected: number) => {
     return {
         type: SET_INPUT_SELECTOR,
-        channel: channel,
+        faderIndex: faderIndex,
         selected: selected,
     }
 }
 
-export const storeFaderLabel = (channel: number, label: string) => {
+export const storeFaderLabel = (faderIndex: number, label: string) => {
     return {
-        type: SET_CHANNEL_LABEL,
-        channel: channel,
+        type: SET_FADER_LABEL,
+        faderIndex: faderIndex,
+        label: label,
+    }
+}
+
+export const storeUserLabel = (faderIndex: number, label: string) => {
+    return {
+        type: SET_USER_LABEL,
+        faderIndex: faderIndex,
         label: label,
     }
 }
 
 export const storeFaderFx = (
     fxParam: fxParamsList,
-    channel: number,
+    faderIndex: number,
     level: number
 ) => {
     return {
         type: SET_FADER_FX,
         fxParam: fxParam,
-        channel: channel,
+        faderIndex: faderIndex,
         level: level,
     }
 }
 
-export const storeFaderMonitor = (channel: number, auxIndex: number) => {
+export const storeFaderMonitor = (faderIndex: number, auxIndex: number) => {
     return {
         type: SET_FADER_MONITOR,
-        channel: channel,
+        faderIndex: faderIndex,
         auxIndex: auxIndex,
     }
 }
 
-export const storeTogglePgm = (channel: number) => {
+export const storeTogglePgm = (faderIndex: number) => {
     return {
         type: TOGGLE_PGM,
-        channel: channel,
+        faderIndex: faderIndex,
     }
 }
 
-export const storeSetPgm = (channel: number, pgmOn: boolean) => {
+export const storeSetPgm = (faderIndex: number, pgmOn: boolean) => {
     return {
         type: SET_PGM,
-        channel: channel,
+        faderIndex: faderIndex,
         pgmOn: pgmOn,
     }
 }
 
-export const storeToggleVo = (channel: number) => {
+export const storeToggleVo = (faderIndex: number) => {
     return {
         type: TOGGLE_VO,
-        channel: channel,
+        faderIndex: faderIndex,
     }
 }
 
-export const storeSetVo = (channel: number, voOn: boolean) => {
+export const storeSetVo = (faderIndex: number, voOn: boolean) => {
     return {
         type: SET_VO,
-        channel: channel,
+        faderIndex: faderIndex,
         voOn: voOn,
     }
 }
 
-export const storeTogglePst = (channel: number) => {
+export const storeTogglePst = (faderIndex: number) => {
     return {
         type: TOGGLE_PST,
-        channel: channel,
+        faderIndex: faderIndex,
     }
 }
 
-export const storeSetPst = (channel: number, pstOn: boolean) => {
+export const storeSetPst = (faderIndex: number, pstOn: boolean) => {
     return {
         type: SET_PST,
-        channel: channel,
+        faderIndex: faderIndex,
         pstOn: pstOn,
     }
 }
 
-export const storeSetPstVo = (channel: number, pstVoOn: boolean) => {
+export const storeSetPstVo = (faderIndex: number, pstVoOn: boolean) => {
     return {
         type: SET_PST_VO,
-        channel: channel,
+        faderIndex: faderIndex,
         pstVoOn: pstVoOn,
     }
 }
 
-export const storeTogglePfl = (channel: number) => {
+export const storeTogglePfl = (faderIndex: number) => {
     return {
         type: TOGGLE_PFL,
-        channel: channel,
+        faderIndex: faderIndex,
     }
 }
 
-export const storeSetPfl = (channel: number, pflOn: boolean) => {
+export const storeSetPfl = (faderIndex: number, pflOn: boolean) => {
     return {
         type: SET_PFL,
-        channel: channel,
+        faderIndex: faderIndex,
         pflOn: pflOn,
     }
 }
 
-export const storeToggleMute = (channel: number) => {
+export const storeToggleMute = (faderIndex: number) => {
     return {
         type: TOGGLE_MUTE,
-        channel: channel,
+        faderIndex: faderIndex,
     }
 }
 
-export const storeSetMute = (channel: number, muteOn: boolean) => {
+export const storeSetMute = (faderIndex: number, muteOn: boolean) => {
     return {
         type: SET_MUTE,
-        channel: channel,
+        faderIndex: faderIndex,
         muteOn: muteOn,
     }
 }
 
-export const storeShowChannel = (channel: number, showChannel: boolean) => {
+export const storeShowChannel = (faderIndex: number, showChannel: boolean) => {
     return {
         type: SHOW_CHANNEL,
-        channel: channel,
+        faderIndex: faderIndex,
         showChannel: showChannel,
     }
 }
@@ -218,10 +231,10 @@ export const storeShowInMiniMonitor = (
     }
 }
 
-export const storeToggleIgnoreAutomation = (channel: number) => {
+export const storeToggleIgnoreAutomation = (faderIndex: number) => {
     return {
         type: IGNORE_AUTOMATION,
-        channel: channel,
+        faderIndex: faderIndex,
     }
 }
 
@@ -249,37 +262,58 @@ export const storeClearPst = () => {
     }
 }
 
-export const storeChannelDisabled = (channel: number, disabled: boolean) => {
+export const storeChannelDisabled = (faderIndex: number, disabled: boolean) => {
     return {
         type: SET_CHANNEL_DISABLED,
-        channel: channel,
+        faderIndex: faderIndex,
         disabled: disabled,
     }
 }
 
-export const storeToggleAMix = (channel: number) => {
+export const storeToggleAMix = (faderIndex: number) => {
     return {
         type: TOGGLE_AMIX,
-        channel: channel,
+        faderIndex: faderIndex,
     }
 }
 
-export const storeSetAMix = (channel: number, state: boolean) => {
+export const storeSetAMix = (faderIndex: number, state: boolean) => {
     return {
         type: SET_AMIX,
-        channel: channel,
+        faderIndex: faderIndex,
         state: state,
     }
 }
 
+export const removeAllAssignedChannels = () => {
+    return {
+        type: REMOVE_ALL_ASSIGNED_CHANNELS,
+    }
+}
+
+export const storeSetAssignedChannel = (
+    faderIndex: number,
+    mixerIndex: number,
+    channelIndex: number,
+    assigned: boolean
+) => {
+    return {
+        type: SET_ASSIGNED_CHANNEL,
+        faderIndex: faderIndex,
+        mixerIndex: mixerIndex,
+        channelIndex: channelIndex,
+        assigned: assigned,
+    }
+}
+
 export const storeCapability = (
-    channel: number,
+    faderIndex: number,
     capability: string,
     enabled: boolean
 ) => {
     return {
         type: SET_CAPABILITY,
-        channel: channel,
+        faderIndex: faderIndex,
         capability: capability,
         enabled: enabled,
     }
@@ -288,5 +322,18 @@ export const storeCapability = (
 export const storeAllManual = () => {
     return {
         type: TOGGLE_ALL_MANUAL,
+    }
+}
+
+export const updateLabels = (update: Record<number, string>) => {
+    return {
+        type: UPDATE_LABEL_LIST,
+        update,
+    }
+}
+
+export const flushExtLabels = () => {
+    return {
+        type: FLUSH_FADER_LABELS,
     }
 }

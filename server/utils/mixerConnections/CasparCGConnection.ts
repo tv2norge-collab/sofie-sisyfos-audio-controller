@@ -14,8 +14,10 @@ import {
     fxParamsList,
 } from '../../constants/MixerProtocolInterface'
 import { IChannel } from '../../reducers/channelsReducer'
-import { storeSetChPrivate } from '../../reducers/channelActions'
-import { storeFaderLabel } from '../../reducers/faderActions'
+import {
+    storeSetChLabel,
+    storeSetChPrivate,
+} from '../../reducers/channelActions'
 import { logger } from '../logger'
 import { dbToFloat, floatToDB } from './LawoRubyConnection'
 import { IFader } from '../../reducers/fadersReducer'
@@ -138,7 +140,7 @@ export class CasparCGConnection {
                                 ][vuChannelIndex]
                             ) {
                                 const faderIndex =
-                                    state.channels[0].chConnection[
+                                    state.channels[0].chMixerConnection[
                                         this.mixerIndex
                                     ].channel[channelIndex].assignedFader
                                 sendVuLevel(
@@ -228,7 +230,7 @@ export class CasparCGConnection {
         }
 
         // Restore mixer values to the ones we have internally
-        state.channels[0].chConnection[this.mixerIndex].channel.forEach(
+        state.channels[0].chMixerConnection[this.mixerIndex].channel.forEach(
             (channel: IChannel, index) => {
                 // const fader =  state.faders[0].fader[channel.assignedFader]
                 this.updateFadeIOLevel(index, channel.outputLevel)
@@ -239,7 +241,9 @@ export class CasparCGConnection {
         // Set source labels from geometry definition
         if (this.mixerProtocol.channelLabels) {
             this.mixerProtocol.channelLabels.forEach((label, channelIndex) => {
-                store.dispatch(storeFaderLabel(channelIndex, label))
+                store.dispatch(
+                    storeSetChLabel(this.mixerIndex, channelIndex, label)
+                )
             })
         }
     }
@@ -379,11 +383,11 @@ export class CasparCGConnection {
         }
         logger.verbose('Update PFL state for ' + channelIndex)
         const channel: IChannel =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ]
         const fader: IFader = state.faders[0].fader[channel.assignedFader]
-        const otherFaders: Array<IFader> = state.channels[0].chConnection[
+        const otherFaders: Array<IFader> = state.channels[0].chMixerConnection[
             this.mixerIndex
         ].channel
             .filter((_ch: any, i: number) => i !== channelIndex)
@@ -398,8 +402,8 @@ export class CasparCGConnection {
                 state.faders[0].fader[channel.assignedFader].faderLevel
             )
             // Ensure that all other non-SOLO channels are muted on MONITOR
-            // const others = state.channels[0].chConnection[this.mixerIndex].channel.map((ch: IChannel) => state.faders[0].fader[ch.assignedFader].pflOn ? undefined : index)
-            const others = state.channels[0].chConnection[
+            // const others = state.channels[0].chMixerConnection[this.mixerIndex].channel.map((ch: IChannel) => state.faders[0].fader[ch.assignedFader].pflOn ? undefined : index)
+            const others = state.channels[0].chMixerConnection[
                 this.mixerIndex
             ].channel
                 .map((ch: IChannel, index: number) =>
@@ -437,25 +441,24 @@ export class CasparCGConnection {
                 this.setAllLayers(pairs, this.mixerProtocol.fader.min)
             } else {
                 // There are no other SOLO channels, restore PFL to match PGM
-                state.channels[0].chConnection[this.mixerIndex].channel.forEach(
-                    (_ch: IChannel, index: number) => {
-                        if (
-                            index >
-                            this.mixerProtocol.toMixer.PFL_AUX_FADER_LEVEL
-                                .length -
-                                1
-                        ) {
-                            return
-                        }
-                        const pairs = this.mixerProtocol.toMixer
-                            .PFL_AUX_FADER_LEVEL[index]
-                        this.setAllLayers(
-                            pairs,
-                            state.channels[0].chConnection[this.mixerIndex]
-                                .channel[index].outputLevel
-                        )
+                state.channels[0].chMixerConnection[
+                    this.mixerIndex
+                ].channel.forEach((_ch: IChannel, index: number) => {
+                    if (
+                        index >
+                        this.mixerProtocol.toMixer.PFL_AUX_FADER_LEVEL.length -
+                            1
+                    ) {
+                        return
                     }
-                )
+                    const pairs = this.mixerProtocol.toMixer
+                        .PFL_AUX_FADER_LEVEL[index]
+                    this.setAllLayers(
+                        pairs,
+                        state.channels[0].chMixerConnection[this.mixerIndex]
+                            .channel[index].outputLevel
+                    )
+                })
             }
         }
     }
@@ -474,7 +477,7 @@ export class CasparCGConnection {
         logger.verbose('Update NEXT AUX for ' + channelIndex)
         if (this.mixerProtocol.toMixer.NEXT_AUX_FADER_LEVEL) {
             const faderIndex: number =
-                state.channels[0].chConnection[this.mixerIndex].channel[
+                state.channels[0].chMixerConnection[this.mixerIndex].channel[
                     channelIndex
                 ].assignedFader
             if (state.faders[0].fader[faderIndex].pstOn === true) {
@@ -502,15 +505,16 @@ export class CasparCGConnection {
     updateInputSelector(channelIndex: number, inputSelected: number) {
         if (
             this.mixerProtocol.toMixer.CHANNEL_INPUT_SELECTOR &&
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].private
         ) {
             const pair = this.mixerProtocol.sourceOptions.sources[channelIndex]
-            const producer = state.channels[0].chConnection[this.mixerIndex]
-                .channel[channelIndex].private!['producer']
+            const producer = state.channels[0].chMixerConnection[
+                this.mixerIndex
+            ].channel[channelIndex].private!['producer']
             let filePath = String(
-                state.channels[0].chConnection[this.mixerIndex].channel[
+                state.channels[0].chMixerConnection[this.mixerIndex].channel[
                     channelIndex
                 ].private!['file_path']
             )
@@ -547,7 +551,7 @@ export class CasparCGConnection {
         )
 
         const faderIndex: number =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].assignedFader
         const pgmPairs = this.mixerProtocol.toMixer.PGM_CHANNEL_FADER_LEVEL[

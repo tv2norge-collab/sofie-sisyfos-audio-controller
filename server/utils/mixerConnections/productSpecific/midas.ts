@@ -13,14 +13,27 @@ export const midasMeter = (mixerIndex: number, message: any) => {
 
     for (let i = 0; i < numberOfChannels; i++) {
         assignedFader =
-            state.channels[0].chConnection[mixerIndex].channel[i].assignedFader
-        if (assignedFader < state.settings[0].numberOfFaders) {
+            state.channels[0].chMixerConnection[mixerIndex].channel[i]
+                .assignedFader
+        if (
+            assignedFader >= 0 &&
+            assignedFader < state.settings[0].numberOfFaders
+        ) {
             level = dataview.getFloat32(4 * i + DATA_OFFSET, true)
             reductionLevel = dataview.getFloat32(
                 4 * (i + 64) + DATA_OFFSET,
                 true
             )
-            sendVuLevel(assignedFader, VuType.Channel, 0, level)
+            let vuIndex: number = state.faders[0].fader[
+                assignedFader
+            ].assignedChannels?.findIndex((assigned) => {
+                return (
+                    assigned.mixerIndex === mixerIndex &&
+                    assigned.channelIndex === i
+                )
+            })
+            if (vuIndex === -1) vuIndex = 0
+            sendVuLevel(assignedFader, VuType.Channel, vuIndex, level)
             sendVuLevel(assignedFader, VuType.Reduction, 0, 1 - reductionLevel)
         }
     }

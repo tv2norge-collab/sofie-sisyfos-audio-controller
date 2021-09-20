@@ -1,6 +1,5 @@
 import React, { ChangeEvent } from 'react'
-//@ts-ignore
-import * as ClassNames from 'classnames'
+import ClassNames from 'classnames'
 
 import '../assets/css/PagesSettings.css'
 import { Store } from 'redux'
@@ -16,6 +15,7 @@ import {
     SOCKET_SET_PAGES_LIST,
 } from '../../server/constants/SOCKET_IO_DISPATCHERS'
 import { ICustomPages } from '../../server/reducers/settingsReducer'
+import { getFaderLabel } from '../utils/labels'
 
 //Set style for Select dropdown component:
 const selectorColorStyles = {
@@ -147,7 +147,7 @@ class PagesSettings extends React.PureComponent<
                                 ].faders.includes(index),
                             })}
                         >
-                            {' Fader ' + (index + 1) + ' - ' + fader.label + ' : '}
+                            {' Fader ' + (index + 1) + ' - ' + getFaderLabel(index) + ' : '}
                             {}
                             <input
                                 type="checkbox"

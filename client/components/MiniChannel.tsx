@@ -1,6 +1,5 @@
 import * as React from 'react'
-//@ts-ignore
-import * as ClassNames from 'classnames'
+import ClassNames from 'classnames'
 import { connect } from 'react-redux'
 import { Store } from 'redux'
 import '../assets/css/NoUiSlider.css'
@@ -11,6 +10,7 @@ import { IFader } from '../../server/reducers/fadersReducer'
 import { IChannels } from '../../server/reducers/channelsReducer'
 import { ISettings } from '../../server/reducers/settingsReducer'
 import { storeShowChanStrip } from '../../server/reducers/settingsActions'
+import { getFaderLabel } from '../utils/labels'
 
 interface IChannelInjectProps {
     channels: IChannels
@@ -18,6 +18,7 @@ interface IChannelInjectProps {
     settings: ISettings
     channelType: number
     channelTypeIndex: number
+    label: string
 }
 
 interface IChannelProps {
@@ -37,7 +38,7 @@ class MiniChannel extends React.Component<
     public shouldComponentUpdate(nextProps: IChannelInjectProps) {
         return (
             nextProps.fader.showChannel != this.props.fader.showChannel ||
-            nextProps.fader.label != this.props.fader.label ||
+            nextProps.label != this.props.label ||
             nextProps.settings.showChanStrip !=
                 this.props.settings.showChanStrip
         )
@@ -59,12 +60,7 @@ class MiniChannel extends React.Component<
                     this.handleShowChanStrip()
                 }}
             >
-                {this.props.fader.label != ''
-                    ? this.props.fader.label
-                    : window.mixerProtocol.channelTypes[this.props.channelType]
-                          .channelTypeName +
-                      ' ' +
-                      (this.props.channelTypeIndex + 1)}
+                {this.props.label}
             </button>
         )
     }
@@ -83,12 +79,13 @@ class MiniChannel extends React.Component<
 
 const mapStateToProps = (state: any, props: any): IChannelInjectProps => {
     return {
-        channels: state.channels[0].chConnection[0].channel,
+        channels: state.channels[0].chMixerConnection[0].channel,
         fader: state.faders[0].fader[props.faderIndex],
         settings: state.settings[0],
         channelType: 0 /* TODO: state.channels[0].channel[props.channelIndex].channelType, */,
         channelTypeIndex:
-            props.faderIndex /* TODO: state.channels[0].chConnection[0].channel[props.channelIndex].channelTypeIndex, */,
+            props.faderIndex /* TODO: state.channels[0].chMixerConnection[0].channel[props.channelIndex].channelTypeIndex, */,
+        label: getFaderLabel(props.faderIndex)
     }
 }
 

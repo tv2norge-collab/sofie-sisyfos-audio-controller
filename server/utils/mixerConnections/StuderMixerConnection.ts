@@ -8,8 +8,9 @@ import {
     fxParamsList,
     IMixerProtocol,
 } from '../../constants/MixerProtocolInterface'
-import { storeFaderLabel, storeFaderLevel } from '../../reducers/faderActions'
+import { storeFaderLevel } from '../../reducers/faderActions'
 import { logger } from '../logger'
+import { storeSetChLabel } from '../../reducers/channelActions'
 
 export class StuderMixerConnection {
     mixerProtocol: IMixerProtocol
@@ -111,9 +112,9 @@ export class StuderMixerConnection {
                 this.emberConnection.subscribe(node, () => {
                     logger.verbose('Receiving Level from Ch ' + String(ch))
                     if (
-                        !state.channels[0].chConnection[this.mixerIndex]
+                        !state.channels[0].chMixerConnection[this.mixerIndex]
                             .channel[ch - 1].fadeActive &&
-                        !state.channels[0].chConnection[this.mixerIndex]
+                        !state.channels[0].chMixerConnection[this.mixerIndex]
                             .channel[ch - 1].fadeActive &&
                         node.contents.value >
                             this.mixerProtocol.channelTypes[typeIndex].fromMixer
@@ -153,7 +154,13 @@ export class StuderMixerConnection {
             )
             .then((node: any) => {
                 this.emberConnection.subscribe(node, () => {
-                    store.dispatch(storeFaderLabel(ch - 1, node.contents.value))
+                    store.dispatch(
+                        storeSetChLabel(
+                            this.mixerIndex,
+                            ch - 1,
+                            node.contents.value
+                        )
+                    )
                 })
             })
     }
@@ -202,11 +209,13 @@ export class StuderMixerConnection {
         let levelMessage: string
         let channelVal: number
         let channelType =
-            state.channels[0].chConnection[this.mixerIndex].channel[channel - 1]
-                .channelType
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
+                channel - 1
+            ].channelType
         let channelTypeIndex =
-            state.channels[0].chConnection[this.mixerIndex].channel[channel - 1]
-                .channelTypeIndex
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
+                channel - 1
+            ].channelTypeIndex
 
         if (channel < 25) {
             levelMessage = this.mixerProtocol.channelTypes[channelType].toMixer
@@ -262,11 +271,11 @@ export class StuderMixerConnection {
 
     updateOutLevel(channelIndex: number) {
         let channelTypeIndex =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].channelTypeIndex
         let outputlevel =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].outputLevel
         let level = 20 * Math.log((1.3 * outputlevel) / 0.775)
@@ -280,7 +289,7 @@ export class StuderMixerConnection {
 
     updateFadeIOLevel(channelIndex: number, outputLevel: number) {
         let channelTypeIndex =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].channelTypeIndex
         let level = 20 * Math.log((1.3 * outputLevel) / 0.775)
@@ -294,11 +303,11 @@ export class StuderMixerConnection {
 
     updatePflState(channelIndex: number) {
         let channelType =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].channelType
         let channelTypeIndex =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].channelTypeIndex
 
@@ -349,11 +358,11 @@ export class StuderMixerConnection {
 
     updateChannelName(channelIndex: number) {
         let channelType =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].channelType
         let channelTypeIndex =
-            state.channels[0].chConnection[this.mixerIndex].channel[
+            state.channels[0].chMixerConnection[this.mixerIndex].channel[
                 channelIndex
             ].channelTypeIndex
         let channelName = state.faders[0].fader[channelIndex].label

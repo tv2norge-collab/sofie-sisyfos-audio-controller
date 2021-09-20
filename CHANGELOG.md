@@ -2,6 +2,169 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.11.3](https://github.com/tv2/sisyfos-audio-controller/compare/v4.11.2...v4.11.3) (2021-09-17)
+
+### Bug Fixes
+
+-   emit labels over automation protocol ([46eff39](https://github.com/tv2/sisyfos-audio-controller/commit/46eff39965514505af9287017978ec1c7efa8500))
+
+### [4.11.2](https://github.com/tv2/sisyfos-audio-controller/compare/v4.11.1...v4.11.2) (2021-09-03)
+
+### Bug Fixes
+
+-   docker image workflow ([d4f733c](https://github.com/tv2/sisyfos-audio-controller/commit/d4f733ce70347e5c0bc2d1199edc703031a9bb4b))
+
+### [4.11.1](https://github.com/tv2/sisyfos-audio-controller/compare/v4.11.0...v4.11.1) (2021-08-30)
+
+### Bug Fixes
+
+-   Automation protocol should not crossfade on channels with ignoreAutomation active ([3fbe07e](https://github.com/tv2/sisyfos-audio-controller/commit/3fbe07ef9216c297e82eaa811e5d564d02cdb0d9))
+
+## [4.11.0](https://github.com/tv2/sisyfos-audio-controller/compare/v4.10.0...v4.11.0) (2021-08-19)
+
+### Features
+
+-   vMix - basic receive data and connetiont established ([a2d99da](https://github.com/tv2/sisyfos-audio-controller/commit/a2d99da3f22948060c0ae5c00bdfc5a6912a94e0))
+-   VMix - Faders, Mute, PFL, Gain & Matrix Select ([6551e22](https://github.com/tv2/sisyfos-audio-controller/commit/6551e2221e69aa3d88911d740bda340d6648ac53))
+-   vmix - initial vmix setup (copy form osc) ([7784eb2](https://github.com/tv2/sisyfos-audio-controller/commit/7784eb25e19a78d4697c434d966db7eeb7b61e98))
+-   vMix - initial working on 2 way connection ([bfbce5b](https://github.com/tv2/sisyfos-audio-controller/commit/bfbce5b9635a4dd50f06f6d9867a17cab45b00d8))
+-   vmix add vmix protocol files ([e7354f1](https://github.com/tv2/sisyfos-audio-controller/commit/e7354f1507340805fcc4c4ba45526b7dcee13257))
+
+### Bug Fixes
+
+-   yarn had been added to dependencies ([db82974](https://github.com/tv2/sisyfos-audio-controller/commit/db8297451f7d036c379057c6ffe5ffaba8fb16a0))
+
+## [4.10.0](https://github.com/tv2/sisyfos-audio-controller/compare/v4.9.1...v4.10.0) (2021-08-18)
+
+### Features
+
+-   label system with user, automation & channel labels ([81e9d5b](https://github.com/tv2/sisyfos-audio-controller/commit/81e9d5b6a83fa6c4ef63c128facad72c30c23ecc))
+-   use labels in automation protocol ([04d454c](https://github.com/tv2/sisyfos-audio-controller/commit/04d454ce3893d46140aa37d977bb6876afc79fea))
+
+### Bug Fixes
+
+-   wrong test command ([0e4d69a](https://github.com/tv2/sisyfos-audio-controller/commit/0e4d69a2f0074780359162647c9c9f621c82dc73))
+
+### [4.9.1](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.9.0...v4.9.1) (2021-07-26)
+
+### Bug Fixes
+
+-   Fade down was sending command in each loop in setInterval not respecting drivers dispatchResolution ([283cad0](https://github.com/olzzon/sisyfos-audio-controller/commit/283cad02850753ba13c6901725518ebbebaf2218))
+-   If default.shot file is missing Sisyfos couln´t startup because trying to set assigned fader on store before faders in store was recreated. ([ece0623](https://github.com/olzzon/sisyfos-audio-controller/commit/ece06235849470b3e099facc153fcece9d16378e))
+-   OSC buffer added to avoid overloading of Midas mixers ([0e4607b](https://github.com/olzzon/sisyfos-audio-controller/commit/0e4607ba9b033d5a6643709cf489262ff772d331))
+-   OSC connection buffer interval lowered to 0.5ms ([9302cf3](https://github.com/olzzon/sisyfos-audio-controller/commit/9302cf38f523194be5e987b4319d931cbd993341))
+
+## [4.9.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.8.3...v4.9.0) (2021-06-22)
+
+### Features
+
+-   remove logging til logfile.log - as this is not used ([59d6b03](https://github.com/olzzon/sisyfos-audio-controller/commit/59d6b031a5e76175d9c775ebb6a3a3a0ef409eca))
+
+### [4.8.3](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.8.2...v4.8.3) (2021-06-22)
+
+### Bug Fixes
+
+-   remove winston-elasticsearch support. Caused crash and is no longer used. ([955d52a](https://github.com/olzzon/sisyfos-audio-controller/commit/955d52a4c66304f6e717d249e54110f0edd58852))
+
+### [4.8.2](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.8.1...v4.8.2) (2021-05-19)
+
+### Bug Fixes
+
+-   resolution on hosted-git-info package to force fix vulnerability ([ef0c283](https://github.com/olzzon/sisyfos-audio-controller/commit/ef0c28333b6329c1ed10c5b46ea73c54c45e3cff))
+
+### [4.8.1](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.8.0...v4.8.1) (2021-05-17)
+
+### Bug Fixes
+
+-   load of snapshot was not enabled. Will now load full snapshot. ToDo filter output non-config based values. ([18fbc22](https://github.com/olzzon/sisyfos-audio-controller/commit/18fbc22e1a8827fa932719f40be431a71b4306dc))
+
+## [4.8.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.7.1...v4.8.0) (2021-03-25)
+
+### Features
+
+-   Display Sisyfos version in Settings menu ([d5ec220](https://github.com/olzzon/sisyfos-audio-controller/commit/d5ec220ace35557d437482ea49d6dea41ea00ff3))
+
+### Bug Fixes
+
+-   migration test also for minor version changes ([1ad86d6](https://github.com/olzzon/sisyfos-audio-controller/commit/1ad86d6075d170eba43e9bbe96ae9cac4cd3effd))
+
+### [4.7.1](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.7.0...v4.7.1) (2021-03-25)
+
+### Bug Fixes
+
+-   migrations version handling as numeric values ([95b80d5](https://github.com/olzzon/sisyfos-audio-controller/commit/95b80d53c60ebff9cd13696d6e8ded7afadf1bda))
+
+## [4.7.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.6.0...v4.7.0) (2021-03-25)
+
+### Features
+
+-   add fader store set and remove assigned channel from fader ([73749ab](https://github.com/olzzon/sisyfos-audio-controller/commit/73749ab5245f47be0b5f64738e6426a3e4cf0af5))
+-   CSS - less space for Multiple meter ([dc1c4e4](https://github.com/olzzon/sisyfos-audio-controller/commit/dc1c4e4a0bd558ce10a4dc0ef81c6ece86220ec1))
+-   implemented Midas support for multiple meters based on the assigned channels to a fader. ToDo full support for multiple mixers ([01a6e36](https://github.com/olzzon/sisyfos-audio-controller/commit/01a6e363cd7f5080cad310ae43032b266b0c4b5b))
+-   inital migration.ts and version check. ([15e9b79](https://github.com/olzzon/sisyfos-audio-controller/commit/15e9b797a63c032f27af28a732cfb6d1da97df72))
+-   Migration - handler updates from 4.xx to 4.6 and also .shot files from 3.xx ([60da92c](https://github.com/olzzon/sisyfos-audio-controller/commit/60da92c10bae6b49a250af2abe13925d5e387526))
+-   prepare change to meter pr assigned channel ([fefa810](https://github.com/olzzon/sisyfos-audio-controller/commit/fefa810ed33f972dfd7564224db7e0007dac57fd))
+
+### Bug Fixes
+
+-   import of faderActions.ts had bad path reference ([39c9f05](https://github.com/olzzon/sisyfos-audio-controller/commit/39c9f05e91da5b246ff9bafc8f19deb6b76a777a))
+-   migration should write settings in sync mode to prevent async loading of old settings ([00e004f](https://github.com/olzzon/sisyfos-audio-controller/commit/00e004ffccde364301685a59c743282e0db382db))
+-   OSC mixerconnection - make initializeCommands optional for protocols without it ([d008250](https://github.com/olzzon/sisyfos-audio-controller/commit/d00825031e2993cde8ec400bade3637c7a688db4))
+
+## [4.6.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.5.2...v4.6.0) (2021-03-19)
+
+### Features
+
+-   code cleanup, remove unused emptyMixerProtocol() function in OSC mixer protocols ([66e3d9c](https://github.com/olzzon/sisyfos-audio-controller/commit/66e3d9cbdca19911f227f567293020ac103d0cbf))
+-   refactor - all snaps code from old implementation removed ([62d2ea2](https://github.com/olzzon/sisyfos-audio-controller/commit/62d2ea2a0761bdc3a0cd827e42b87b6600dfb125))
+-   refactor - rename channel to faderIndex in all faderReducers and faderActions ([e738ba4](https://github.com/olzzon/sisyfos-audio-controller/commit/e738ba46777706599f14804653e92d7c5afb600c))
+-   refactor - rename chConnection to chMixerConnection ([fc22e4e](https://github.com/olzzon/sisyfos-audio-controller/commit/fc22e4e5adb7c95a124bc88bbee0fbfc43d181da))
+-   settings are changed so they are only available when /?settings=1 is added ([48f61a4](https://github.com/olzzon/sisyfos-audio-controller/commit/48f61a4a45f4fc8d1751b59e41ea477d717d040c))
+
+### Bug Fixes
+
+-   delay button had a + sign in from nomatter if it was positive og negative ([3aa404a](https://github.com/olzzon/sisyfos-audio-controller/commit/3aa404adf0928e79854c7d2061c832e4a8a76214))
+-   OscMixerConnection check parameter as optional for support when not in the mixerprotocol ([609cb91](https://github.com/olzzon/sisyfos-audio-controller/commit/609cb9157a27ee8441bfe3c5df81ee7968d693b9))
+-   types for ClassNames and .babelrc for jest tests ([f9e4d16](https://github.com/olzzon/sisyfos-audio-controller/commit/f9e4d1638bbabab8d8c7aa811c9783f4c7648bad))
+-   update tests for support of faderActions ([731ce0f](https://github.com/olzzon/sisyfos-audio-controller/commit/731ce0f0c787e6b8db5eaa42e5daf57d3a54d59e))
+
+### [4.5.2](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.5.1...v4.5.2) (2021-03-18)
+
+### Bug Fixes
+
+-   Fader resolution increased to 1/1000 so delay on Midas could be handled ([c8272dc](https://github.com/olzzon/sisyfos-audio-controller/commit/c8272dcf14aa7ff642a9561c8e3470f7e659113b))
+
+### [4.5.1](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.5.0...v4.5.1) (2021-02-25)
+
+### Bug Fixes
+
+-   Full channelstrip - vertical faders in react-slider module, inherited "reverse" setting from horisontal faders. ([30505ac](https://github.com/olzzon/sisyfos-audio-controller/commit/30505ac4c5cbf023e28143e5124e4cb52f0d6bbf))
+
+## [4.5.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.4.0...v4.5.0) (2021-02-24)
+
+### Features
+
+-   Midas/X32 - Input gain trim in full channel view ([6e3ccbc](https://github.com/olzzon/sisyfos-audio-controller/commit/6e3ccbc983390092a7977949adc2026e8dd50833))
+-   More Generic Preset load files for midas/X32 ([bc292d4](https://github.com/olzzon/sisyfos-audio-controller/commit/bc292d436b5036e1265b1f8ed0355b2f8aac57f7))
+-   show dB range on the fader ([d38b4ba](https://github.com/olzzon/sisyfos-audio-controller/commit/d38b4ba98e48cf7ddb8d95a484290f94b816fd96))
+-   **ember:** load mixer snapshots ([14c4d71](https://github.com/olzzon/sisyfos-audio-controller/commit/14c4d715be1144be77a3c8c76823bb096e4baedf))
+
+### Bug Fixes
+
+-   casparcg online status ([b0c079d](https://github.com/olzzon/sisyfos-audio-controller/commit/b0c079d7558782d842062574b6ae5508b05e2867))
+-   change PFL color to green ([40d8514](https://github.com/olzzon/sisyfos-audio-controller/commit/40d851463462612ad76038ec17ae88a295dc5a26))
+-   default number of custompages changed from 16 to 4 ([353ac95](https://github.com/olzzon/sisyfos-audio-controller/commit/353ac95b86c280ea0862abe68ddcf05783e3c398))
+-   hide unused Lawo Ruby channels ([c7356cb](https://github.com/olzzon/sisyfos-audio-controller/commit/c7356cb618ecfa4ed5a25958bb6db55eb42b3c0c))
+-   mc2 input gain ([7a07fdc](https://github.com/olzzon/sisyfos-audio-controller/commit/7a07fdc6b805a693325566476fa060ddb4990016))
+-   mc2 mixer protocol ([0602048](https://github.com/olzzon/sisyfos-audio-controller/commit/0602048b0b4237f288f82942bf0f0f62d736d78f))
+-   Midas/Behringer X32 load first scene in mixer (index 0) ([ee31992](https://github.com/olzzon/sisyfos-audio-controller/commit/ee3199204a4d5dc5b6d5ed1caafa190001962214))
+-   Midas/X32 - Q-param in Eq was reverted and non exponential ([41e3809](https://github.com/olzzon/sisyfos-audio-controller/commit/41e380985a0febd00e733b3647659b6684aa2299))
+-   mixer status + mc2 reconnects ([80bc452](https://github.com/olzzon/sisyfos-audio-controller/commit/80bc45293f98f6c12171376e2aa06117cf8ee4fb))
+-   OSC protocol - set mixer online when auto reconnecting ([18ac6c0](https://github.com/olzzon/sisyfos-audio-controller/commit/18ac6c034fad2af9bfb067dabc4b9331834beb9a))
+-   rename "Gain Trim" to "Input" as gain trim is the name of the parameter ([804235b](https://github.com/olzzon/sisyfos-audio-controller/commit/804235bc41a55dce5716ae89725fc4c7d148bdb4))
+-   show storage with settings disabled ([a7563a6](https://github.com/olzzon/sisyfos-audio-controller/commit/a7563a6583ecb1db2bbb648a1a831c075f14d8b0))
+-   ui crash when an invalid channel number was used by automation ([66ee580](https://github.com/olzzon/sisyfos-audio-controller/commit/66ee5803a6cb8f750120fed42694417984a6d46b))
+
 ## [4.4.0](https://github.com/olzzon/sisyfos-audio-controller/compare/v4.3.0...v4.4.0) (2020-11-14)
 
 ### Features

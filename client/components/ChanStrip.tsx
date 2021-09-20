@@ -20,6 +20,7 @@ import {
 import ReductionMeter from './ReductionMeter'
 import ClassNames from 'classnames'
 import { fxParamsList } from '../../server/constants/MixerProtocolInterface'
+import { getFaderLabel } from '../utils/labels'
 
 interface IChanStripInjectProps {
     label: string
@@ -201,7 +202,7 @@ class ChanStrip extends React.PureComponent<
             <React.Fragment>
                 {this.fxParamFader(fxParamsList.DelayTime)}
                 <div className="delayButtons">
-                {DEL_VALUES.map((value: number) => {
+                    {DEL_VALUES.map((value: number) => {
                         return (
                             <button
                                 className="delayTime"
@@ -214,7 +215,8 @@ class ChanStrip extends React.PureComponent<
                                     )
                                 }}
                             >
-                                +{value}ms
+                                {value > 0 ? '+' : ''}
+                                {value}ms
                             </button>
                         )
                     })}
@@ -247,7 +249,7 @@ class ChanStrip extends React.PureComponent<
                     invert
                     min={0}
                     max={1}
-                    step={0.01}
+                    step={0.001}
                     value={
                         this.props.fader[this.props.faderIndex][fxParam]?.[0] ??
                         0
@@ -276,14 +278,7 @@ class ChanStrip extends React.PureComponent<
     monitor(channelIndex: number) {
         let faderIndex = this.props.channel[channelIndex].assignedFader
         if (faderIndex === -1) return null
-        let monitorName = this.props.fader[faderIndex]
-            ? this.props.fader[faderIndex].label
-            : ''
-        if (monitorName === '') {
-            monitorName =
-                'Fader ' +
-                String(this.props.channel[channelIndex].assignedFader + 1)
-        }
+        let monitorName = getFaderLabel(faderIndex, 'Fader')
         return (
             <li key={channelIndex}>
                 {monitorName}
@@ -458,8 +453,7 @@ class ChanStrip extends React.PureComponent<
                         <React.Fragment>
                             <hr />
                             <div className="group-text">
-                                {this.props.label ||
-                                    'FADER ' + (this.props.faderIndex + 1)}
+                                {this.props.label}
                                 {' - MONITOR MIX MINUS'}
                             </div>
                             <ul className="monitor-sends">
@@ -489,8 +483,7 @@ class ChanStrip extends React.PureComponent<
             return (
                 <div className="chan-strip-body">
                     <div className="header">
-                        {this.props.label ||
-                            'FADER ' + (this.props.faderIndex + 1)}
+                        {this.props.label}
                         <button
                             className="close"
                             onClick={() => this.handleClose()}
@@ -520,18 +513,18 @@ const mapStateToProps = (state: any, props: any): IChanStripInjectProps => {
         selectedProtocol: state.settings[0].mixers[0].mixerProtocol,
         numberOfChannelsInType:
             state.settings[0].mixers[0].numberOfChannelsInType,
-        channel: state.channels[0].chConnection[0].channel,
+        channel: state.channels[0].chMixerConnection[0].channel,
         fader: state.faders[0].fader,
         auxSendIndex: -1,
         offtubeMode: state.settings[0].offtubeMode,
     }
     if (props.faderIndex >= 0) {
         inject = {
-            label: state.faders[0].fader[props.faderIndex].label,
+            label: getFaderLabel(props.faderIndex, 'FADER'),
             selectedProtocol: state.settings[0].mixers[0].mixerProtocol,
             numberOfChannelsInType:
                 state.settings[0].mixers[0].numberOfChannelsInType,
-            channel: state.channels[0].chConnection[0].channel,
+            channel: state.channels[0].chMixerConnection[0].channel,
             fader: state.faders[0].fader,
             auxSendIndex: state.faders[0].fader[props.faderIndex].monitor - 1,
             offtubeMode: state.settings[0].offtubeMode,
