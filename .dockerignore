@@ -3,9 +3,6 @@ node_modules
 *.github
 Dockerfile
 
-client
-server
-
 .gitignore
 .dockerignore
 .prettierignore
