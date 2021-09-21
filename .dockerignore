@@ -13,4 +13,3 @@ tslint.json
 .npmignore
 .jshintrc
 .editorconfig
-webpack.config.js
