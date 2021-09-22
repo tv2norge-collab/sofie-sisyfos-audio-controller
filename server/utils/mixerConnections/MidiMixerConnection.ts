@@ -3,10 +3,11 @@
 // The `web-midi-api` module takes care of importing the `jazz-midi` module (which needs to be
 // installed) and the WebMIDIAPI shim (which is already part of `web-midi-api`).
 global.navigator = require('web-midi-api')
-// WebMidi.js depends on the browser's performance.now() so we fake it with the `performance-now`
-// Node module (which is installed as a dependency of `web-midi-api`).
-if (!global.performance)
-    global.performance = { now: require('performance-now') }
+// WebMidi.js depends on the browser's performance.now() but in node we shall import the module instead
+if (!global.performance) {
+    const performance = require('perf_hooks')
+    global.performance = { now: performance.now }
+}
 //Node Modules:
 const WebMidi = require('webmidi')
 
