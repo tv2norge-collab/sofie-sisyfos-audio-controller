@@ -178,13 +178,10 @@ export class VMixMixerConnection {
                 } = state.channels[0].chMixerConnection[
                     this.mixerIndex
                 ].channel[input.number - 1]
-                const {
-                    inputGain,
-                    muteOn,
-                    pflOn,
-                    pgmOn,
-                    voOn,
-                } = state.faders[0].fader[assignedFader]
+
+                const fader = state.faders[0].fader[assignedFader]
+                if (!fader) return // continue
+                const { inputGain, muteOn, pflOn, pgmOn, voOn } = fader
                 let sendUpdate = false
                 const dispatch = (update: any) => {
                     store.dispatch(update)
