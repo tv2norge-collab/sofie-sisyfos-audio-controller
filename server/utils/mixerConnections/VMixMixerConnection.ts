@@ -171,13 +171,11 @@ export class VMixMixerConnection {
                     ) // add +15 to convert from dBFS
                 }
 
-                const {
-                    outputLevel,
-                    fadeActive,
-                    assignedFader,
-                } = state.channels[0].chMixerConnection[
-                    this.mixerIndex
-                ].channel[input.number - 1]
+                const channel =
+                    state.channels[0].chMixerConnection[this.mixerIndex]
+                        .channel[input.number - 1]
+                if (!channel) return // continue
+                const { outputLevel, fadeActive, assignedFader } = channel
 
                 const fader = state.faders[0].fader[assignedFader]
                 if (!fader) return // continue
