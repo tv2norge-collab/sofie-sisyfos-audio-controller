@@ -4,10 +4,10 @@ env:
   node-version: 16
   node-package-manager: yarn
 
-on:
-  push:
-    branches:
-      - "develop"
+# on:
+#  push:
+#    branches:
+#      - "develop"
 
 jobs:
   cache-dependencies:

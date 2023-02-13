@@ -23,11 +23,11 @@ env:
   node-version: 16
   node-package-manager: yarn
 
-on:
-  push:
-    branches:
-      - "master"
-      - "main"
+# on:
+#  push:
+#    branches:
+#      - "master"
+#      - "main"
 
 jobs:
   cache-dependencies:
