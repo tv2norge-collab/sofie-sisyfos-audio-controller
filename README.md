@@ -34,13 +34,23 @@ The Advanced channelstrip has all the features the seleced Mixer Protol supports
 
 ### If you need a MiniMonitorView for a client:
 
-run webpage with
+Run webpage with
 
 ```
-localhost/?minimonitor=1
+localhost/?view=minimonitor
 ```
 
 <img src="Docs/pix/minimonitorview.png">
+
+### If you need a Microphone Tally View for a client:
+
+Run webpage with
+
+```
+localhost/?view=mic-tally
+```
+
+<img src="Docs/pix/mic-tally-view.png" alt="Microphone Tally View" style="zoom: 150%;" />
 
 ### Routing of Faders to Channels
 
@@ -53,46 +63,31 @@ Routing setups can be stored in STORAGE. So it´s possible to have different Rou
 ### Run as Docker: (On linux)
 
 ```
-docker pull olzzon/sisyfos-audio-controller:develop
+docker pull tv2media/sisyfos-audio-controller:develop
 docker volume create sisyfos-vol
-sudo docker run --mount source=sisyfos-vol,target=/opt/sisyfos-audio-controller/storage -e loggerIp='0.0.0.0' -e loggerPort=9300 -e loggerFileLevel='error' --network="host" --restart always olzzon/sisyfos-audio-controller:develop
+sudo docker run --mount source=sisyfos-vol,target=/opt/sisyfos-audio-controller/storage --network="host" --restart always tv2media/sisyfos-audio-controller:develop
 ```
-
-Running Docker with Elastic Search:
-Set env vars: loggerIp=xx.xx.xx.xx and loggerPort=xxxx and loggerLevel='info'
-
-if you wish to log to logfile instead of kibana:
-Set env var: -e loggerFileLevel='info'
-(no kibana args will default to: 0.0.0.0:9200 logger level='info')
 
 ### Install Local node host:
 
 (Be aware that a server reload will quit server and you need an external source to restart)
 
 ```
-git clone https://github.com/olzzon/sisyfos-audio-controller.git
+git clone https://github.com/tv2media/sisyfos-audio-controller.git
 cd sisyfos-audio-controller
 yarn
 yarn build
-yarn start --loggerConsoleLevel='info'
+yarn start
 ```
 
-Running Server with Elastic Search:
-(no args will default to: 0.0.0.0:9200)
+### Log levels:
 
-```
-yarn start --loggerIp '192.168.12.12' --loggerPort 9302
-```
+When running Sisyfos you can define the log level by setting the environment variable `LOG_LEVEL` to one of the following log levels:
 
-### Logger levels:
-
-When running Sisyfos you can define the log level by:
-loggerLevel (Kibana log level) and loggerFileLevel (local log file level) and loggerConsoleLevel (local log to console)
-The levels are:
-
--   error (only error)
--   info (standard info regarding connectiviy and data from Automation protocol etc.)
--   verbose (info level plus: data send and received from Audiomixer)
+-   error (only errors)
+-   warn (errors and warning)
+-   info (standard info regarding connectiviy and data from Automation protocol etc. including errors and warnings)
+-   debug (info level plus: data send and received from Audiomixer)
 
 ### Open GUI in browser:
 

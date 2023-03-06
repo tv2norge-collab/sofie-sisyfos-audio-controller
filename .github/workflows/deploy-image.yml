@@ -33,7 +33,7 @@ jobs:
         run: yarn build
 
       - name: yarn unit test
-        run: yarn unit
+        run: yarn test
 
   docker-release:
     runs-on: ubuntu-latest

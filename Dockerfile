@@ -1,17 +1,17 @@
-# syntax=docker/dockerfile:experimental
 # BUILD IMAGE
-FROM node:12.16.0
+FROM node:16.14-alpine
+RUN apk add --no-cache git
 WORKDIR /opt/sisyfos-audio-controller
 COPY . .
-RUN yarn install --check-files --frozen-lockfile
+RUN yarn --check-files --frozen-lockfile
 RUN yarn build
-RUN yarn install --check-files --frozen-lockfile --production --force # purge dev-dependencies
+RUN yarn --check-files --frozen-lockfile --production --force
+RUN yarn cache clean
 
 # DEPLOY IMAGE
-FROM node:12.16.0-alpine
-RUN apk add --no-cache tzdata
-COPY --from=0 /opt/sisyfos-audio-controller /opt/sisyfos-audio-controller
+FROM node:16.14-alpine
 WORKDIR /opt/sisyfos-audio-controller
+COPY --from=0 /opt/sisyfos-audio-controller .
 EXPOSE 1176/tcp
 EXPOSE 1176/udp
 EXPOSE 5255/tcp
