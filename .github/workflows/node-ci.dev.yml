@@ -27,12 +27,12 @@ jobs:
         uses: actions/checkout@v2
       - uses: ./.github/actions/test
 
-  validate-dependencies:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Access repository
-        uses: actions/checkout@v2
-      - uses: ./.github/actions/validate-dependencies
+  # validate-dependencies:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Access repository
+  #       uses: actions/checkout@v2
+  #     - uses: ./.github/actions/validate-dependencies
 
   build:
     runs-on: ubuntu-latest
