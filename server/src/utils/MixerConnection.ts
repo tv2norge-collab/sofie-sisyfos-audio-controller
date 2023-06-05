@@ -20,7 +20,10 @@ import { LawoRubyMixerConnection } from './mixerConnections/LawoRubyConnection'
 import { StuderMixerConnection } from './mixerConnections/StuderMixerConnection'
 import { StuderVistaMixerConnection } from './mixerConnections/StuderVistaMixerConnection'
 import { CasparCGConnection } from './mixerConnections/CasparCGConnection'
-import { IChannel, IchMixerConnection } from '../../../shared/src/reducers/channelsReducer'
+import {
+    IChannel,
+    IchMixerConnection,
+} from '../../../shared/src/reducers/channelsReducer'
 import {
     storeFadeActive,
     storeSetOutputLevel,
@@ -546,7 +549,7 @@ export class MixerGenericConnection {
         this.mixerTimers[mixerIndex].chTimer[channelIndex] = setInterval(() => {
             outputLevel -= step
             dispatchTrigger += step
-            if (dispatchTrigger > dispatchResolution) {
+            if (dispatchTrigger > dispatchResolution && outputLevel > 0) {
                 this.mixerConnection[mixerIndex].updateFadeIOLevel(
                     channelIndex,
                     outputLevel
