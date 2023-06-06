@@ -1,0 +1,111 @@
+name: TV" Norge Dev Node CI
+permissions:
+  id-token: write
+  contents: read
+env:
+  node-version: 16
+  node-package-manager: yarn
+  AWS_REGION: eu-north-1
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "**"
+
+jobs:
+  cache-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Access repository
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/cache
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+  test:
+    runs-on: ubuntu-latest
+    needs: cache-dependencies
+    steps:
+      - name: Access repository
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/test
+
+  # validate-dependencies:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Access repository
+  #       uses: actions/checkout@v2
+  #     - uses: ./.github/actions/validate-dependencies
+
+  build:
+    runs-on: ubuntu-latest
+    needs:
+      - test
+    steps:
+      - name: Access repository
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/cache
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Upload client build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-client-develop
+          path: client/dist
+
+      - name: Upload server build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-server-develop
+          path: server/dist
+
+  publish-docker-image:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Access repository
+        uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-client-develop
+          path: client/dist
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-server-develop
+          path: server/dist
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.6.0
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
+          tags: |
+            type=ref,event=branch
+
+      - name: Build and push docker image tags
+        id: docker_build
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
