@@ -21,15 +21,6 @@
 #       - name: yarn install
 #         run: yarn install --check-files --frozen-lockfile
 
-<<<<<<< Updated upstream
-      - name: yarn validate:dependencies
-        run: |
-          if ! git log --format=oneline -n 1 | grep -q "\[ignore-audit\]"; then
-            yarn validate:dependencies
-          else
-            echo "Skipping audit"
-          fi
-=======
 #       # - name: yarn validate:dependencies
 #       #   run: |
 #       #     if ! git log --format=oneline -n 1 | grep -q "\[ignore-audit\]"; then
@@ -37,7 +28,6 @@
 #       #     else
 #       #       echo "Skipping audit"
 #       #     fi
->>>>>>> Stashed changes
 
 #       - name: yarn build
 #         run: yarn build
@@ -78,15 +68,6 @@
 #           username: ${{ github.repository_owner }}
 #           password: ${{ secrets.GITHUB_TOKEN }}
 
-<<<<<<< Updated upstream
-      - name: Build and push to GHCR
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          labels: ${{ steps.ghcr-tag.outputs.labels }}
-          tags: "${{ steps.ghcr-tag.outputs.tags }}"
-=======
 #       - name: Build and push to GHCR
 #         uses: docker/build-push-action@v3
 #         with:
@@ -95,4 +76,3 @@
 #           provenance: false
 #           labels: ${{ steps.ghcr-tag.outputs.labels }}
 #           tags: "${{ steps.ghcr-tag.outputs.tags }}"
->>>>>>> Stashed changes

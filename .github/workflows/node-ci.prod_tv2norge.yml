@@ -10,11 +10,8 @@ env:
 on:
   push:
     branches:
-      - '*'         # matches every branch that doesn't contain a '/'
-      - '*/*'       # matches every branch containing a single '/'
-      - '**'        # matches every branch
-      - '!master'   # excludes master
-      - '!main'   # excludes master
+      - 'master'   # excludes master
+      - 'main'   # excludes master
     tags:
       - "**"
 
@@ -36,12 +33,12 @@ jobs:
         uses: actions/checkout@v2
       - uses: ./.github/actions/test
 
-  # validate-dependencies:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Access repository
-  #       uses: actions/checkout@v2
-  #     - uses: ./.github/actions/validate-dependencies
+  validate-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Access repository
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/validate-dependencies
 
   build:
     runs-on: ubuntu-latest
@@ -104,6 +101,7 @@ jobs:
           images: ${{ steps.login-ecr.outputs.registry }}/${{ github.event.repository.name }}
           tags: |
             type=sha,prefix={{branch}}-       
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push docker image tags
         id: docker_build

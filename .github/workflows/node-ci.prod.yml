@@ -60,21 +60,12 @@
 
 #       - uses: ./.github/actions/test
 
-<<<<<<< Updated upstream
-  validate-dependencies:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Access repository
-        uses: actions/checkout@v2
-      - uses: ./.github/actions/validate-dependencies
-=======
 #   # validate-dependencies:
 #   #   runs-on: ubuntu-latest
 #   #   steps:
 #   #     - name: Access repository
 #   #       uses: actions/checkout@v2
 #   #     - uses: ./.github/actions/validate-dependencies
->>>>>>> Stashed changes
 
 #   bump-version:
 #     runs-on: ubuntu-latest
